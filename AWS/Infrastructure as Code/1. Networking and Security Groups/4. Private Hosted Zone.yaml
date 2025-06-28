@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation template - Private Hosted Zone - Created by Theodor Harmse for University of Liverpool -
+  Creates a Route 53 Private Hosted Zone associated with the existing VPC.
+
+Parameters:
+
+  DomainName:
+    Type: String
+    Default: liverpool.com
+    Description: The domain name for the private hosted zone
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Hosted Zone Configuration
+        Parameters:
+          - DomainName
+
+Resources:
+
+  PrivateHostedZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      Name: !Ref DomainName
+      HostedZoneConfig:
+        Comment: Private Hosted Zone for Liverpool University project
+      VPCs:
+        - VPCId: !ImportValue Networking-VPCId
+          VPCRegion: !Ref AWS::Region
+      HostedZoneTags:
+        - Key: Name
+          Value: liverpool-private-hosted-zone
+
+Outputs:
+
+  HostedZoneId:
+    Description: The ID of the created Private Hosted Zone
+    Value: !Ref PrivateHostedZone
+    Export:
+      Name: PrivateHostedZoneId

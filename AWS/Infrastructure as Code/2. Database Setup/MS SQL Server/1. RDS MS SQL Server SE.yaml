@@ -1,0 +1,182 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation template - RDS SQL Server with Route53 and Parameter Store - Created by Theodor Harmse for University of Liverpool -
+  Deploys a Microsoft SQL Server RDS instance, creates a private Route 53 DNS record pointing to it, and stores the DNS name and credentials in Parameter Store.
+
+Parameters:
+
+  HostedZoneDomainName:
+    Type: String
+    Default: liverpool.com
+    Description: Base domain for the private hosted zone
+
+  Region:
+    Type: String
+    Default: eu-west-1
+    AllowedValues:
+      - eu-west-1
+      - eu-central-1
+      - us-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+    Description: AWS Region for deployment
+
+  DBInstanceIdentifier:
+    Type: String
+    Default: liv-rds-SQLServer
+    Description: The name for the RDS DB instance
+
+  DBInstanceClass:
+    Type: String
+    Default: db.r6i.large
+    AllowedValues:
+      - db.r6i.large
+      - db.m6i.large
+      - db.r6i.xlarge
+      - db.m6i.xlarge
+    Description: RDS instance class
+
+  DBName:
+    Type: String
+    Default: performance_db
+    Description: Initial database name
+
+  DBEdition:
+    Type: String
+    Default: Standard
+    AllowedValues:
+      - Standard
+    Description: SQL Server Edition
+
+  DBUsername:
+    Type: String
+    Default: adminuser
+    Description: Master username
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Default: Password123!
+    Description: Master user password
+
+  AllocatedStorage:
+    Type: Number
+    Default: 20
+    Description: Allocated storage (GB)
+
+  PreferredAvailabilityZone:
+    Type: String
+    Default: eu-west-1a
+    Description: Preferred Availability Zone for the RDS instance
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Deployment Configuration
+        Parameters:
+          - Region
+          - PreferredAvailabilityZone
+          - HostedZoneDomainName
+          - DBInstanceIdentifier
+          - DBInstanceClass
+          - DBEdition
+          - AllocatedStorage
+      - Label:
+          default: Database Configuration
+        Parameters:
+          - DBName
+          - DBUsername
+          - DBPassword
+
+Resources:
+
+  SQLServerRDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceIdentifier
+      Engine: sqlserver-se
+      EngineVersion: 16.00.4185.3.v1
+      LicenseModel: license-included
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DBInstanceClass: !Ref DBInstanceClass
+      AllocatedStorage: !Ref AllocatedStorage
+      StorageType: gp3
+      StorageEncrypted: true
+      AvailabilityZone: !Ref PreferredAvailabilityZone
+      VPCSecurityGroups:
+        - !ImportValue SecurityGroup-RDSSGId
+      DBSubnetGroupName: !ImportValue DB-Subnet-Group-RDSSubnetGroupName
+      MultiAZ: false
+      PubliclyAccessible: false
+      DeletionProtection: false
+      BackupRetentionPeriod: 7
+      Tags:
+        - Key: Name
+          Value: !Ref DBInstanceIdentifier
+
+  SQLServerRecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !ImportValue PrivateHostedZoneId
+      Name: !Sub "sqlserver.${HostedZoneDomainName}"
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - !GetAtt SQLServerRDSInstance.Endpoint.Address
+
+  SQLServerEndpointParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/RDS/MSSQLServer/Endpoint"
+      Type: String
+      Value: !Sub "sqlserver.${HostedZoneDomainName}"
+      Description: "SQL Server Private Hosted Zone DNS Name"
+
+  SQLServerUsernameParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/RDS/MSSQLServer/Username"
+      Type: String
+      Value: !Ref DBUsername
+      Description: "SQL Server Admin Username"
+
+  SQLServerPasswordParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/RDS/MSSQLServer/Password"
+      Type: String
+      Value: !Ref DBPassword
+      Description: "SQL Server Admin Password"
+
+  SQLServerDatabaseNameParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/RDS/MSSQLServer/DatabaseName"
+      Type: String
+      Value: !Ref DBName
+      Description: "SQL Server Database Name"
+
+Outputs:
+
+  RDSInstanceEndpoint:
+    Description: The endpoint address of the SQL Server RDS instance
+    Value: !GetAtt SQLServerRDSInstance.Endpoint.Address
+    Export:
+      Name: RDS-SQLServer-Endpoint
+
+  RDSInstanceId:
+    Description: The ID of the SQL Server RDS instance
+    Value: !Ref SQLServerRDSInstance
+    Export:
+      Name: RDS-SQLServer-InstanceId
+
+  SQLServerRecordName:
+    Description: DNS name for SQL Server in Private Hosted Zone
+    Value: !Sub "sqlserver.${HostedZoneDomainName}"
+
+  ParameterStoreEndpointName:
+    Description: SSM Parameter Store key for the Endpoint
+    Value: "/Liverpool/RDS/MSSQLServer/Endpoint"

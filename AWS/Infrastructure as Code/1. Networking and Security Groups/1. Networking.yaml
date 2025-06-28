@@ -1,0 +1,866 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: |
+  CloudFormation template - Networking - Created by Theodor Harmse for University of Liverpool - Creates a VPC with 4 Public and 6 Private Subnets. 2 Public for NAT and jumpbox, 2 Public for ELB, and the 6 private subnets for up to 3 tiers. NAT Gateways can optionally be created.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Environment Settings
+        Parameters:
+          - EnvironmentName
+      - Label:
+          default: VPC Configuration
+        Parameters:
+          - VPCCIDR
+          - NumberOfNATGateways
+      - Label:
+          default: Public Tier 1 Configuration
+        Parameters:
+          - PublicTier1Name
+          - PublicSubnet1CIDR
+          - PublicSubnet2CIDR
+      - Label:
+          default: Public Tier 2 Configuration
+        Parameters:
+          - PublicTier2Name
+          - PublicSubnet3CIDR
+          - PublicSubnet4CIDR
+      - Label:
+          default: Private Tier 1 Configuration
+        Parameters:
+          - PrivateTier1Name
+          - PrivateSubnet1CIDR
+          - PrivateSubnet2CIDR
+      - Label:
+          default: Private Tier 2 Configuration
+        Parameters:
+          - PrivateTier2Name
+          - PrivateSubnet3CIDR
+          - PrivateSubnet4CIDR
+      - Label:
+          default: Private Tier 3 Configuration
+        Parameters:
+          - PrivateTier3Name
+          - PrivateSubnet5CIDR
+          - PrivateSubnet6CIDR
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Environment Name (e.g., dev, staging, prod, liverpool) in lowercase only
+    Default: liverpool
+  VPCCIDR:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR block for the VPC
+
+  PublicSubnet1CIDR:
+    Type: String
+    Default: 10.0.1.0/24
+    Description: CIDR block for Public Subnet 1 (AZ a)
+
+  PublicSubnet2CIDR:
+    Type: String
+    Default: 10.0.2.0/24
+    Description: CIDR block for Public Subnet 2 (AZ b)
+
+  PublicSubnet3CIDR:
+    Type: String
+    Default: 10.0.3.0/24
+    Description: CIDR block for Public Subnet 3 (AZ a)
+
+  PublicSubnet4CIDR:
+    Type: String
+    Default: 10.0.4.0/24
+    Description: CIDR block for Public Subnet 4 (AZ b)
+
+  PrivateSubnet1CIDR:
+    Type: String
+    Default: 10.0.5.0/24
+    Description: CIDR block for Private Subnet 1 (AZ a)
+
+  PrivateSubnet2CIDR:
+    Type: String
+    Default: 10.0.6.0/24
+    Description: CIDR block for Private Subnet 2 (AZ b)
+
+  PrivateSubnet3CIDR:
+    Type: String
+    Default: 10.0.7.0/24
+    Description: CIDR block for Private Subnet 3 (AZ a)
+
+  PrivateSubnet4CIDR:
+    Type: String
+    Default: 10.0.8.0/24
+    Description: CIDR block for Private Subnet 4 (AZ b)
+
+  PrivateSubnet5CIDR:
+    Type: String
+    Default: 10.0.9.0/24
+    Description: CIDR block for Private Subnet 5 (AZ a)
+
+  PrivateSubnet6CIDR:
+    Type: String
+    Default: 10.0.10.0/24
+    Description: CIDR block for Private Subnet 6 (AZ b)
+
+  PublicTier1Name:
+    Type: String
+    Default: nat
+  PublicTier2Name:
+    Type: String
+    Default: elb
+  PrivateTier1Name:
+    Type: String
+    Default: web
+  PrivateTier2Name:
+    Type: String
+    Default: app
+  PrivateTier3Name:
+    Type: String
+    Default: data
+  NumberOfNATGateways:
+    Type: Number
+    AllowedValues:
+      - 0
+      - 1
+      - 2
+    Default: "0"
+    Description: Number of NAT Gateways to create
+Conditions:
+  CreateNATGatewayA: !Or
+    - !Equals
+      - !Ref NumberOfNATGateways
+      - 1
+    - !Equals
+      - !Ref NumberOfNATGateways
+      - 2
+  CreateNATGatewayB: !Equals
+    - !Ref NumberOfNATGateways
+    - 2
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-vpc
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-igw
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  VPCFlowLogsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join
+        - ''
+        - - !Ref EnvironmentName
+          - '-vpcflowlogs'
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-vpcflowlogs-bucket
+
+  VPCFlowLogs:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      ResourceType: VPC
+      ResourceId: !Ref VPC
+      TrafficType: ALL
+      LogDestinationType: s3
+      LogDestination: !GetAtt VPCFlowLogsBucket.Arn
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-vpcflowlogs-bucket
+
+  # Public Subnets
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet1CIDR
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-${PublicTier1Name}-AZ-a
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet2CIDR
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-${PublicTier1Name}-AZ-b
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet3CIDR
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-${PublicTier2Name}-AZ-a
+
+  PublicSubnet4:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet4CIDR
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-${PublicTier2Name}-AZ-b
+
+  # Private Subnets
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-${PrivateTier1Name}-AZ-a
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-${PrivateTier1Name}-AZ-b
+
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet3CIDR
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-${PrivateTier2Name}-AZ-a
+
+  PrivateSubnet4:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet4CIDR
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-${PrivateTier2Name}-AZ-b
+
+  PrivateSubnet5:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet5CIDR
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-${PrivateTier3Name}-AZ-a
+
+  PrivateSubnet6:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet6CIDR
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-${PrivateTier3Name}-AZ-b
+
+  # Route Tables
+  PublicRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-rtb-AZ-a
+
+  PublicRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-rtb-AZ-b
+
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-rtb-${PrivateTier1Name}-AZ-a
+
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-rtb-${PrivateTier1Name}-AZ-b
+
+  PrivateRouteTable3:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-rtb-${PrivateTier2Name}-AZ-a
+
+  PrivateRouteTable4:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-rtb-${PrivateTier2Name}-AZ-b
+
+  PrivateRouteTable5:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-rtb-${PrivateTier3Name}-AZ-a
+
+  PrivateRouteTable6:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-rtb-${PrivateTier3Name}-AZ-b
+
+  # Network ACLs
+  PublicNACLRecovery:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-nacl-${PublicTier1Name}
+
+  PublicNACLReplication:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-nacl-${PublicTier2Name}
+
+  PrivateNACLWeb:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-nacl-${PrivateTier1Name}
+
+  PrivateNACLApp:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-nacl-${PrivateTier2Name}
+
+  PrivateNACLDB:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-nacl-${PrivateTier3Name}
+
+  # Network ACL Rules
+  PublicNACLRecoveryInboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref PublicNACLRecovery
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: ALLOW
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+
+  PublicNACLRecoveryOutboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref PublicNACLRecovery
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: ALLOW
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+
+  PublicNACLReplicationInboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref PublicNACLReplication
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: ALLOW
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+
+  PublicNACLReplicationOutboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref PublicNACLReplication
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: ALLOW
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+
+  PrivateNACLWebInboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref PrivateNACLWeb
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: ALLOW
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+
+  PrivateNACLWebOutboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref PrivateNACLWeb
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: ALLOW
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+
+  PrivateNACLAppInboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref PrivateNACLApp
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: ALLOW
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+
+  PrivateNACLAppOutboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref PrivateNACLApp
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: ALLOW
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+
+  PrivateNACLDBInboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref PrivateNACLDB
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: ALLOW
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+
+  PrivateNACLDBOutboundRule:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref PrivateNACLDB
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: ALLOW
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+
+  # NAT Gateways and Routes
+  NATGatewayA:
+    Condition: CreateNATGatewayA
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      AllocationId: !GetAtt ElasticIPNATGatewayA.AllocationId
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-AZ-a
+
+  NATGatewayB:
+    Condition: CreateNATGatewayB
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      AllocationId: !GetAtt ElasticIPNATGatewayB.AllocationId
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-AZ-b
+
+  ElasticIPNATGatewayA:
+    Condition: CreateNATGatewayA
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-AZ-a
+
+  ElasticIPNATGatewayB:
+    Condition: CreateNATGatewayB
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-AZ-b
+
+  # Routes for Public and Private Subnets
+  PublicRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PrivateRouteToNATGatewayA1:
+    Condition: CreateNATGatewayA
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGatewayA
+
+  PrivateRouteToNATGatewayA2:
+    Condition: CreateNATGatewayA
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGatewayA
+
+  PrivateRouteToNATGatewayA3:
+    Condition: CreateNATGatewayA
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable5
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGatewayA
+
+  PrivateRouteToNATGatewayB1:
+    Condition: CreateNATGatewayB
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGatewayB
+
+  PrivateRouteToNATGatewayB2:
+    Condition: CreateNATGatewayB
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable4
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGatewayB
+
+  PrivateRouteToNATGatewayB3:
+    Condition: CreateNATGatewayB
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable6
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGatewayB
+
+  # Subnet Route Table Associations
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable2
+
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      RouteTableId: !Ref PublicRouteTable1
+
+  PublicSubnet4RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet4
+      RouteTableId: !Ref PublicRouteTable2
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable1
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable2
+
+  PrivateSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet3
+      RouteTableId: !Ref PrivateRouteTable3
+
+  PrivateSubnet4RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet4
+      RouteTableId: !Ref PrivateRouteTable4
+
+  PrivateSubnet5RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet5
+      RouteTableId: !Ref PrivateRouteTable5
+
+  PrivateSubnet6RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet6
+      RouteTableId: !Ref PrivateRouteTable6
+
+  # Subnet Network ACL Associations
+  PublicSubnet1NACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      NetworkAclId: !Ref PublicNACLRecovery
+
+  PublicSubnet2NACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      NetworkAclId: !Ref PublicNACLRecovery
+
+  PublicSubnet3NACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      NetworkAclId: !Ref PublicNACLReplication
+
+  PublicSubnet4NACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet4
+      NetworkAclId: !Ref PublicNACLReplication
+
+  PrivateSubnet1NACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      NetworkAclId: !Ref PrivateNACLWeb
+
+  PrivateSubnet2NACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      NetworkAclId: !Ref PrivateNACLWeb
+
+  PrivateSubnet3NACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet3
+      NetworkAclId: !Ref PrivateNACLApp
+
+  PrivateSubnet4NACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet4
+      NetworkAclId: !Ref PrivateNACLApp
+
+  PrivateSubnet5NACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet5
+      NetworkAclId: !Ref PrivateNACLDB
+
+  PrivateSubnet6NACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet6
+      NetworkAclId: !Ref PrivateNACLDB
+
+Outputs:
+  VPCId:
+    Description: The ID of the VPC
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${AWS::StackName}-VPCId
+
+  PublicSubnet1Id:
+    Description: The ID of Tier 1 Public Subnet A in AZ A (Public Tier)
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicSubnet1Id
+
+  PublicSubnet2Id:
+    Description: The ID of Tier 1 Public Subnet B in AZ B (Public Tier)
+    Value: !Ref PublicSubnet2
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicSubnet2Id
+
+  PublicSubnet3Id:
+    Description: The ID of Tier 2 Public Subnet A in AZ A (Public Tier)
+    Value: !Ref PublicSubnet3
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicSubnet3Id
+
+  PublicSubnet4Id:
+    Description: The ID of Tier 2 Public Subnet B in AZ B (Public Tier)
+    Value: !Ref PublicSubnet4
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicSubnet4Id
+
+  PrivateSubnet1Id:
+    Description: The ID of Tier 1 Private Subnet A in AZ A (Web Tier)
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateSubnet1Id
+
+  PrivateSubnet2Id:
+    Description: The ID of Tier 1 Private Subnet B in AZ B (Web Tier)
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateSubnet2Id
+
+  PrivateSubnet3Id:
+    Description: The ID of Tier 2 Private Subnet A in AZ A (App Tier)
+    Value: !Ref PrivateSubnet3
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateSubnet3Id
+
+  PrivateSubnet4Id:
+    Description: The ID of Tier 2 Private Subnet B in AZ B (App Tier)
+    Value: !Ref PrivateSubnet4
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateSubnet4Id
+
+  PrivateSubnet5Id:
+    Description: The ID of Tier 3 Private Subnet A in AZ A (DB Tier)
+    Value: !Ref PrivateSubnet5
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateSubnet5Id
+
+  PrivateSubnet6Id:
+    Description: The ID of Tier 3 Private Subnet B in AZ B (DB Tier)
+    Value: !Ref PrivateSubnet6
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateSubnet6Id
+
+  PrivateRouteTable1Id:
+    Description: The ID of Private Route Table 1 (Web Tier)
+    Value: !Ref PrivateRouteTable1
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateRouteTable1Id
+
+  PrivateRouteTable2Id:
+    Description: The ID of Private Route Table 2 (Web Tier)
+    Value: !Ref PrivateRouteTable2
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateRouteTable2Id
+
+  PrivateRouteTable3Id:
+    Description: The ID of Private Route Table 3 (App Tier)
+    Value: !Ref PrivateRouteTable3
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateRouteTable3Id
+
+  PrivateRouteTable4Id:
+    Description: The ID of Private Route Table 4 (App Tier)
+    Value: !Ref PrivateRouteTable4
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateRouteTable4Id
+
+  PrivateRouteTable5Id:
+    Description: The ID of Private Route Table 5 (DB Tier)
+    Value: !Ref PrivateRouteTable5
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateRouteTable5Id
+
+  PrivateRouteTable6Id:
+    Description: The ID of Private Route Table 6 (DB Tier)
+    Value: !Ref PrivateRouteTable6
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateRouteTable6Id
+
+  PublicRouteTable1Id:
+    Description: The ID of Public Route Table 1 (Public Tier)
+    Value: !Ref PublicRouteTable1
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicRouteTable1Id
+
+  PublicRouteTable2Id:
+    Description: The ID of Public Route Table 2 (Public Tier)
+    Value: !Ref PublicRouteTable2
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicRouteTable2Id
+
+  VPCFlowLogsBucket:
+    Description: The S3 Bucket Name for storing VPC Flow Logs
+    Value: !Ref VPCFlowLogsBucket
+    Export:
+      Name: !Sub ${AWS::StackName}-VPCFlowLogsBucket
+

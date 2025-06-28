@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation template - DynamoDB and S3 VPC Endpoints - Created by Theodor Harmse for University of Liverpool -
+  Creates Gateway VPC Endpoints for DynamoDB and S3 using existing VPC and all private route tables (Web, App, DB tiers).
+
+Parameters:
+
+  Region:
+    Type: String
+    Default: eu-west-1
+    AllowedValues:
+      - eu-west-1
+      - eu-central-1
+      - us-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+    Description: AWS Region for deployment
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Deployment Configuration
+        Parameters:
+          - Region
+
+Resources:
+
+  DynamoDBVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.dynamodb"
+      VpcId: !ImportValue Networking-VPCId
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - !ImportValue Networking-PrivateRouteTable1Id
+        - !ImportValue Networking-PrivateRouteTable2Id
+        - !ImportValue Networking-PrivateRouteTable3Id
+        - !ImportValue Networking-PrivateRouteTable4Id
+        - !ImportValue Networking-PrivateRouteTable5Id
+        - !ImportValue Networking-PrivateRouteTable6Id
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "*"
+            Resource: "*"
+      Tags:
+        - Key: Name
+          Value: DynamoDB VPC Endpoint
+
+  S3VPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+      VpcId: !ImportValue Networking-VPCId
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - !ImportValue Networking-PrivateRouteTable1Id
+        - !ImportValue Networking-PrivateRouteTable2Id
+        - !ImportValue Networking-PrivateRouteTable3Id
+        - !ImportValue Networking-PrivateRouteTable4Id
+        - !ImportValue Networking-PrivateRouteTable5Id
+        - !ImportValue Networking-PrivateRouteTable6Id
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "*"
+            Resource: "*"
+      Tags:
+        - Key: Name
+          Value: S3 VPC Endpoint
+
+Outputs:
+
+  DynamoDBVPCEndpointId:
+    Description: ID of the created DynamoDB VPC Endpoint
+    Value: !Ref DynamoDBVPCEndpoint
+    Export:
+      Name: Networking-DynamoDBVPCEndpointId
+
+  S3VPCEndpointId:
+    Description: ID of the created S3 VPC Endpoint
+    Value: !Ref S3VPCEndpoint
+    Export:
+      Name: Networking-S3VPCEndpointId

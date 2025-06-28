@@ -1,0 +1,189 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation template - Aurora PostgreSQL Cluster with Route53 and Parameter Store - Created by Theodor Harmse for University of Liverpool -
+  Deploys a single-instance Aurora PostgreSQL cluster, creates a private Route 53 DNS record pointing to it, and stores the DNS name and credentials in Parameter Store.
+
+Parameters:
+
+  HostedZoneDomainName:
+    Type: String
+    Default: liverpool.com
+    Description: Base domain for the private hosted zone
+
+  Region:
+    Type: String
+    Default: eu-west-1
+    AllowedValues:
+      - eu-west-1
+      - eu-central-1
+      - us-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+    Description: AWS Region for deployment
+
+  DBClusterIdentifier:
+    Type: String
+    Default: liv-aurora-postgres-cluster
+    Description: The name for the Aurora DB cluster
+
+  DBInstanceIdentifier:
+    Type: String
+    Default: liv-aurora-postgres-instance
+    Description: The name for the Aurora DB instance
+
+  DBInstanceClass:
+    Type: String
+    Default: db.r6i.large
+    AllowedValues:
+      - db.r6i.large
+      - db.t3.medium
+      - db.m6i.large
+      - db.r6i.xlarge
+      - db.m6i.xlarge
+    Description: Aurora instance class
+
+  DBName:
+    Type: String
+    Default: performance_db
+    Description: Initial database name
+
+  DBUsername:
+    Type: String
+    Default: adminuser
+    Description: Master username
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Default: Password123!
+    Description: Master user password
+
+  PreferredAvailabilityZone:
+    Type: String
+    Default: eu-west-1a
+    Description: Preferred Availability Zone for the Aurora instance
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Deployment Configuration
+        Parameters:
+          - Region
+          - PreferredAvailabilityZone
+          - HostedZoneDomainName
+          - DBClusterIdentifier
+          - DBInstanceIdentifier
+          - DBInstanceClass
+      - Label:
+          default: Database Configuration
+        Parameters:
+          - DBName
+          - DBUsername
+          - DBPassword
+
+Resources:
+
+  AuroraPostgreSQLCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      EngineVersion: 16.2
+      DBClusterIdentifier: !Ref DBClusterIdentifier
+      DatabaseName: !Ref DBName
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      VpcSecurityGroupIds:
+        - !ImportValue SecurityGroup-RDSSGId
+      DBSubnetGroupName: !ImportValue DB-Subnet-Group-RDSSubnetGroupName
+      BackupRetentionPeriod: 7
+      PreferredBackupWindow: 03:00-04:00
+      DeletionProtection: false
+      StorageEncrypted: true
+      Tags:
+        - Key: Name
+          Value: !Ref DBClusterIdentifier
+
+  AuroraPostgreSQLInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceIdentifier
+      DBClusterIdentifier: !Ref AuroraPostgreSQLCluster
+      Engine: aurora-postgresql
+      DBInstanceClass: !Ref DBInstanceClass
+      AvailabilityZone: !Ref PreferredAvailabilityZone
+      PubliclyAccessible: false
+      Tags:
+        - Key: Name
+          Value: !Ref DBInstanceIdentifier
+
+  AuroraPostgreSQLRecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !ImportValue PrivateHostedZoneId
+      Name: !Sub "aurorapostgresql.${HostedZoneDomainName}"
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - !GetAtt AuroraPostgreSQLCluster.Endpoint.Address
+
+  AuroraPostgreSQLEndpointParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/RDS/AuroraPostgreSQL/Endpoint"
+      Type: String
+      Value: !Sub "aurorapostgresql.${HostedZoneDomainName}"
+      Description: "Aurora PostgreSQL Private Hosted Zone DNS Name"
+
+  AuroraPostgreSQLUsernameParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/RDS/AuroraPostgreSQL/Username"
+      Type: String
+      Value: !Ref DBUsername
+      Description: "Aurora PostgreSQL Admin Username"
+
+  AuroraPostgreSQLPasswordParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/RDS/AuroraPostgreSQL/Password"
+      Type: String
+      Value: !Ref DBPassword
+      Description: "Aurora PostgreSQL Admin Password"
+
+  AuroraPostgreSQLDatabaseNameParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/RDS/AuroraPostgreSQL/DatabaseName"
+      Type: String
+      Value: !Ref DBName
+      Description: "Aurora PostgreSQL Database Name"
+
+Outputs:
+
+  AuroraClusterEndpoint:
+    Description: The endpoint of the Aurora PostgreSQL cluster
+    Value: !GetAtt AuroraPostgreSQLCluster.Endpoint.Address
+    Export:
+      Name: Aurora-PostgreSQL-ClusterEndpoint
+
+  AuroraClusterId:
+    Description: The ID of the Aurora PostgreSQL cluster
+    Value: !Ref AuroraPostgreSQLCluster
+    Export:
+      Name: Aurora-PostgreSQL-ClusterId
+
+  AuroraInstanceId:
+    Description: The ID of the Aurora PostgreSQL instance
+    Value: !Ref AuroraPostgreSQLInstance
+    Export:
+      Name: Aurora-PostgreSQL-InstanceId
+
+  AuroraPostgreSQLRecordName:
+    Description: DNS name for Aurora PostgreSQL in Private Hosted Zone
+    Value: !Sub "aurorapostgresql.${HostedZoneDomainName}"
+
+  ParameterStoreEndpointName:
+    Description: SSM Parameter Store key for the Endpoint
+    Value: "/Liverpool/RDS/AuroraPostgreSQL/Endpoint"

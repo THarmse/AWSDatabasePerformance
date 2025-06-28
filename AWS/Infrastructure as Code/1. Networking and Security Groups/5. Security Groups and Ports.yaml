@@ -1,0 +1,264 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation template - Security Groups - Created by Theodor Harmse for University of Liverpool - Creates security groups for Bastion, ELB, Web Tier, App Tier, and RDS with parameterized ports and sources. Defines controlled access between tiers with defaults for common database ports and internet-facing services.
+
+Parameters:
+
+  ELBPortHTTP:
+    Type: Number
+    Default: 80
+    Description: HTTP port for ELB
+  ELBPortHTTPS:
+    Type: Number
+    Default: 443
+    Description: HTTPS port for ELB
+  ELBSource:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: Source CIDR for ELB ingress
+
+  WebTierPortHTTP:
+    Type: Number
+    Default: 80
+    Description: HTTP port for web tier
+  WebTierPortHTTPS:
+    Type: Number
+    Default: 443
+    Description: HTTPS port for web tier
+
+  AppTierPortHTTP:
+    Type: Number
+    Default: 80
+    Description: HTTP port for app tier
+  AppTierPortHTTPS:
+    Type: Number
+    Default: 443
+    Description: HTTPS port for app tier
+
+  RDSPortMSSQL:
+    Type: Number
+    Default: 1433
+    Description: Microsoft SQL Server port
+  RDSPortOracle:
+    Type: Number
+    Default: 1521
+    Description: Oracle port
+  RDSPortMySQL:
+    Type: Number
+    Default: 3306
+    Description: MySQL/MariaDB/Aurora MySQL port
+  RDSPortPostgreSQL:
+    Type: Number
+    Default: 5432
+    Description: PostgreSQL/Aurora PostgreSQL port
+  RDSPortDB2:
+    Type: Number
+    Default: 50000
+    Description: IBM DB2 port
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: ELB Security Group
+        Parameters:
+          - ELBPortHTTP
+          - ELBPortHTTPS
+          - ELBSource
+      - Label:
+          default: Web Tier Security Group
+        Parameters:
+          - WebTierPortHTTP
+          - WebTierPortHTTPS
+      - Label:
+          default: App Tier Security Group
+        Parameters:
+          - AppTierPortHTTP
+          - AppTierPortHTTPS
+      - Label:
+          default: RDS Security Group
+        Parameters:
+          - RDSPortMSSQL
+          - RDSPortOracle
+          - RDSPortMySQL
+          - RDSPortPostgreSQL
+          - RDSPortDB2
+
+Resources:
+
+  SGBastion:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow RDP access for bastion host
+      VpcId: !ImportValue Networking-VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: sg_Bastion
+
+  SGELB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP and HTTPS access to ELB
+      VpcId: !ImportValue Networking-VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref ELBPortHTTP
+          ToPort: !Ref ELBPortHTTP
+          CidrIp: !Ref ELBSource
+        - IpProtocol: tcp
+          FromPort: !Ref ELBPortHTTPS
+          ToPort: !Ref ELBPortHTTPS
+          CidrIp: !Ref ELBSource
+      Tags:
+        - Key: Name
+          Value: sg_ELB
+
+  SGWebTier:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: [SGELB, SGBastion]
+    Properties:
+      GroupDescription: Allow traffic from ELB and bastion to web tier
+      VpcId: !ImportValue Networking-VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref WebTierPortHTTP
+          ToPort: !Ref WebTierPortHTTP
+          SourceSecurityGroupId: !Ref SGELB
+        - IpProtocol: tcp
+          FromPort: !Ref WebTierPortHTTPS
+          ToPort: !Ref WebTierPortHTTPS
+          SourceSecurityGroupId: !Ref SGELB
+        - IpProtocol: tcp
+          FromPort: !Ref WebTierPortHTTP
+          ToPort: !Ref WebTierPortHTTP
+          SourceSecurityGroupId: !Ref SGBastion
+        - IpProtocol: tcp
+          FromPort: !Ref WebTierPortHTTPS
+          ToPort: !Ref WebTierPortHTTPS
+          SourceSecurityGroupId: !Ref SGBastion
+      Tags:
+        - Key: Name
+          Value: sg_WebTier
+
+  SGAppTier:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: [SGWebTier, SGELB, SGBastion]
+    Properties:
+      GroupDescription: Allow traffic from ELB, web tier, and bastion to app tier
+      VpcId: !ImportValue Networking-VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref AppTierPortHTTP
+          ToPort: !Ref AppTierPortHTTP
+          SourceSecurityGroupId: !Ref SGELB
+        - IpProtocol: tcp
+          FromPort: !Ref AppTierPortHTTPS
+          ToPort: !Ref AppTierPortHTTPS
+          SourceSecurityGroupId: !Ref SGELB
+        - IpProtocol: tcp
+          FromPort: !Ref AppTierPortHTTP
+          ToPort: !Ref AppTierPortHTTP
+          SourceSecurityGroupId: !Ref SGWebTier
+        - IpProtocol: tcp
+          FromPort: !Ref AppTierPortHTTPS
+          ToPort: !Ref AppTierPortHTTPS
+          SourceSecurityGroupId: !Ref SGWebTier
+        - IpProtocol: tcp
+          FromPort: !Ref AppTierPortHTTP
+          ToPort: !Ref AppTierPortHTTP
+          SourceSecurityGroupId: !Ref SGBastion
+        - IpProtocol: tcp
+          FromPort: !Ref AppTierPortHTTPS
+          ToPort: !Ref AppTierPortHTTPS
+          SourceSecurityGroupId: !Ref SGBastion
+      Tags:
+        - Key: Name
+          Value: sg_AppTier
+
+  SGRDS:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: [SGAppTier, SGBastion]
+    Properties:
+      GroupDescription: Allow database access from app tier and bastion
+      VpcId: !ImportValue Networking-VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref RDSPortMSSQL
+          ToPort: !Ref RDSPortMSSQL
+          SourceSecurityGroupId: !Ref SGAppTier
+        - IpProtocol: tcp
+          FromPort: !Ref RDSPortOracle
+          ToPort: !Ref RDSPortOracle
+          SourceSecurityGroupId: !Ref SGAppTier
+        - IpProtocol: tcp
+          FromPort: !Ref RDSPortMySQL
+          ToPort: !Ref RDSPortMySQL
+          SourceSecurityGroupId: !Ref SGAppTier
+        - IpProtocol: tcp
+          FromPort: !Ref RDSPortPostgreSQL
+          ToPort: !Ref RDSPortPostgreSQL
+          SourceSecurityGroupId: !Ref SGAppTier
+        - IpProtocol: tcp
+          FromPort: !Ref RDSPortDB2
+          ToPort: !Ref RDSPortDB2
+          SourceSecurityGroupId: !Ref SGAppTier
+        - IpProtocol: tcp
+          FromPort: !Ref RDSPortMSSQL
+          ToPort: !Ref RDSPortMSSQL
+          SourceSecurityGroupId: !Ref SGBastion
+        - IpProtocol: tcp
+          FromPort: !Ref RDSPortOracle
+          ToPort: !Ref RDSPortOracle
+          SourceSecurityGroupId: !Ref SGBastion
+        - IpProtocol: tcp
+          FromPort: !Ref RDSPortMySQL
+          ToPort: !Ref RDSPortMySQL
+          SourceSecurityGroupId: !Ref SGBastion
+        - IpProtocol: tcp
+          FromPort: !Ref RDSPortPostgreSQL
+          ToPort: !Ref RDSPortPostgreSQL
+          SourceSecurityGroupId: !Ref SGBastion
+        - IpProtocol: tcp
+          FromPort: !Ref RDSPortDB2
+          ToPort: !Ref RDSPortDB2
+          SourceSecurityGroupId: !Ref SGBastion
+      Tags:
+        - Key: Name
+          Value: sg_RDS
+
+Outputs:
+
+  BastionSGId:
+    Description: ID of the bastion security group
+    Value: !Ref SGBastion
+    Export:
+      Name: SecurityGroup-BastionSGId
+
+  ELBSGId:
+    Description: ID of the ELB security group
+    Value: !Ref SGELB
+    Export:
+      Name: SecurityGroup-ELBSGId
+
+  WebTierSGId:
+    Description: ID of the web tier security group
+    Value: !Ref SGWebTier
+    Export:
+      Name: SecurityGroup-WebTierSGId
+
+  AppTierSGId:
+    Description: ID of the app tier security group
+    Value: !Ref SGAppTier
+    Export:
+      Name: SecurityGroup-AppTierSGId
+
+  RDSSGId:
+    Description: ID of the RDS security group
+    Value: !Ref SGRDS
+    Export:
+      Name: SecurityGroup-RDSSGId

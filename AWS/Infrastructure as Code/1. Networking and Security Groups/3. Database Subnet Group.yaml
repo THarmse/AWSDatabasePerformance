@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: |
+  CloudFormation template - RDS Subnet Group - Created by Theodor Harmse for University of Liverpool -
+  This template creates an RDS DB Subnet Group using the Data Tier subnets (Tier 3) from the networking stack.
+
+Parameters:
+  NetworkingStackName:
+    Type: String
+    Description: Name of the stack that created the networking infrastructure (used to import subnet IDs)
+    Default: Networking
+
+Resources:
+  RDSDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: RDS DB Subnet Group for Data Tier
+      DBSubnetGroupName: !Sub "${NetworkingStackName}-rds-subnet-group"
+      SubnetIds:
+        - Fn::ImportValue: !Sub "${NetworkingStackName}-PrivateSubnet5Id"
+        - Fn::ImportValue: !Sub "${NetworkingStackName}-PrivateSubnet6Id"
+      Tags:
+        - Key: Name
+          Value: !Sub "${NetworkingStackName}-rds-subnet-group"
+
+Outputs:
+  RDSSubnetGroup:
+    Description: RDS Subnet Group Name
+    Value: !Ref RDSDBSubnetGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-RDSSubnetGroupName"

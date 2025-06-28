@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation template - DynamoDB Table with Parameter Store - Created by Theodor Harmse for University of Liverpool -
+  Deploys a DynamoDB table and stores the alias, actual regional endpoint, table name, and region in Parameter Store.
+
+Parameters:
+
+  Region:
+    Type: String
+    Default: eu-west-1
+    AllowedValues:
+      - eu-west-1
+      - eu-central-1
+      - us-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+    Description: AWS Region for deployment
+
+  HostedZoneDomainName:
+    Type: String
+    Default: liverpool.com
+    Description: Base domain for the private hosted zone
+
+  TableName:
+    Type: String
+    Default: transaction_records
+    Description: DynamoDB table name
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Deployment Configuration
+        Parameters:
+          - Region
+          - HostedZoneDomainName
+          - TableName
+
+Resources:
+
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref TableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: transaction_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: transaction_id
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Ref TableName
+
+  DynamoDBAliasEndpointParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/DynamoDB/Endpoint"
+      Type: String
+      Value: !Sub "dynamodb.${HostedZoneDomainName}"
+      Description: "Alias for DynamoDB endpoint in internal configuration"
+
+  DynamoDBActualEndpointParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/DynamoDB/ActualEndpoint"
+      Type: String
+      Value: "https://dynamodb.eu-west-1.amazonaws.com"
+      Description: "Actual AWS regional DynamoDB endpoint"
+
+  DynamoDBTableNameParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/DynamoDB/TableName"
+      Type: String
+      Value: !Ref TableName
+      Description: "DynamoDB Table Name"
+
+  DynamoDBRegionParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/Liverpool/DynamoDB/Region"
+      Type: String
+      Value: !Ref AWS::Region
+      Description: "AWS Region for DynamoDB Table"
+
+Outputs:
+
+  DynamoDBTableName:
+    Description: Name of the DynamoDB table
+    Value: !Ref TableName
+
+  ParameterStoreAliasEndpoint:
+    Description: SSM Parameter Store key for the Alias Endpoint
+    Value: "/Liverpool/DynamoDB/Endpoint"
+
+  ParameterStoreActualEndpoint:
+    Description: SSM Parameter Store key for the Actual Regional Endpoint
+    Value: "/Liverpool/DynamoDB/ActualEndpoint"
