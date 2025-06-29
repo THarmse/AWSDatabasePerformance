@@ -3,11 +3,11 @@ version: 0.2
 phases:
   install:
     commands:
-      - echo Installing Python dependencies
+      - echo Installing dependencies
       - pip install -r requirements.txt --target ./package
   pre_build:
     commands:
-      - echo Preparing artifact structure
+      - echo Preparing artifact
       - mkdir -p package/api_service
       - cp -r api_service/* package/api_service/
       - mkdir -p package/scripts
@@ -16,10 +16,10 @@ phases:
       - cp requirements.txt package/
   build:
     commands:
-      - echo Build phase complete
+      - echo Build complete
   post_build:
     commands:
-      - echo Build and packaging complete
+      - echo Packaging complete
 
 artifacts:
   files:

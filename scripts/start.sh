@@ -1,16 +1,8 @@
 #!/bin/bash
-echo "========== ApplicationStart Hook =========="
-echo "Stopping any existing uvicorn server..."
-pkill -f "uvicorn" || true
+set -e
 
-echo "Starting FastAPI server on localhost:8000..."
+# Kill old process if running
+pkill uvicorn || true
 
-cd /home/ec2-user/app/api_service
-
-python3 -m venv venv
-source venv/bin/activate
-
-pip install --upgrade pip
-pip install -r /home/ec2-user/app/requirements.txt
-
-nohup uvicorn main:app --host 127.0.0.1 --port 8000 > /home/ec2-user/app/uvicorn.log 2>&1 &
+# Start FastAPI app with Uvicorn behind Apache
+nohup uvicorn api_service.main:app --host 127.0.0.1 --port 8000 > /var/www/app/uvicorn.log 2>&1 &
