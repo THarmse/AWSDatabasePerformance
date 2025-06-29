@@ -5,7 +5,7 @@
 import uuid
 import random
 from datetime import datetime, timedelta
-from api_service.base import get_mysql_connection
+from api_service.db.base import get_mysql_connection 
 
 # Parameter Store name for MySQL credentials
 PARAM_NAME = "/uol/project/mysql/credentials"
