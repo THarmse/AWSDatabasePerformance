@@ -27,3 +27,10 @@ When doing IBM, activate Marketplace Pay-as-you-use license first
    b. Create GitHub connection in AWS (ireland region)
    c. Create Cloudformation stack with lowercase name ONLY ie. cicd 
 	   
+	a 
+
+
+	Troubleshooting
+source /home/ec2-user/app/venv/bin/activate
+cd /home/ec2-user/app
+uvicorn api_service.main:app --host 127.0.0.1 --port 8000
