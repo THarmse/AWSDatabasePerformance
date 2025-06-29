@@ -196,11 +196,12 @@ Resources:
           Fn::Base64: 
             !Sub |
               #!/bin/bash
+              set -ex
               yum update -y
               yum install -y httpd
               systemctl enable httpd
+              echo '<html><body><h1>Healthcheck OK</h1></body></html>' > /var/www/html/index.html
               systemctl start httpd
-              echo "<html><body><h1>Welcome to API Instance - Apache is running!</h1></body></html>" > /var/www/html/index.html
 
               # Install CodeDeploy Agent
               yum install -y ruby wget
