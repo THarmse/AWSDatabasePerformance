@@ -1,9 +1,9 @@
 #!/bin/bash
 echo "========== ApplicationStart Hook =========="
-echo "Stopping placeholder healthcheck server if running..."
-pkill -f "http.server"
+echo "Stopping any existing uvicorn server..."
+pkill -f "uvicorn" || true
 
-echo "Starting FastAPI server..."
+echo "Starting FastAPI server on localhost:8000..."
 
 cd /home/ec2-user/app/api_service
 
@@ -13,4 +13,4 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r /home/ec2-user/app/requirements.txt
 
-nohup uvicorn main:app --host 0.0.0.0 --port 80 > /home/ec2-user/app/uvicorn.log 2>&1 &
+nohup uvicorn main:app --host 127.0.0.1 --port 8000 > /home/ec2-user/app/uvicorn.log 2>&1 &

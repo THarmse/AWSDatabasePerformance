@@ -3,7 +3,7 @@ Description: >
   CloudFormation template - ALB, Target Group, and Auto Scaling Group
   Created by Theodor Harmse for University of Liverpool -
   Deploys an ALB, Target Group, Auto Scaling Group with EC2 instances.
-  Includes Route53 record, CodeDeploy agent bootstrap, and static placeholder healthcheck site.
+  Includes Route53 record, CodeDeploy agent bootstrap, and Apache reverse proxy with static healthcheck site.
 
 Parameters:
 
@@ -196,6 +196,7 @@ Resources:
           Fn::Base64: 
             !Sub |
               #!/bin/bash
+              set -ex
               yum update -y
 
               # Install CodeDeploy Agent
@@ -207,15 +208,34 @@ Resources:
               systemctl enable codedeploy-agent
               systemctl start codedeploy-agent
 
-              # Install Python3 for tiny server
-              yum install -y python3
+              # Install Apache with Proxy modules
+              yum install -y httpd mod_proxy mod_proxy_http
 
-              # Create placeholder static healthcheck site
-              mkdir -p /home/ec2-user/healthcheck
-              echo "<html><body><h1>Placeholder Healthcheck OK</h1></body></html>" > /home/ec2-user/healthcheck/index.html
+              # Enable Apache to start at boot
+              systemctl enable httpd
 
-              # Start simple HTTP server on port 80 to respond to ALB health checks
-              nohup python3 -m http.server 80 --directory /home/ec2-user/healthcheck > /home/ec2-user/healthcheck.log 2>&1 &
+              # Create healthcheck index.html
+              echo "<html><body><h1>Healthcheck OK</h1></body></html>" > /var/www/html/index.html
+
+              # Add Apache VirtualHost with reverse proxy to uvicorn
+              cat <<EOF > /etc/httpd/conf.d/app.conf
+              <VirtualHost *:80>
+                  DocumentRoot /var/www/html
+                  
+                  <Location "/">
+                      SetHandler default-handler
+                  </Location>
+                  
+                  ProxyPass "/api/" "http://127.0.0.1:8000/api/"
+                  ProxyPassReverse "/api/" "http://127.0.0.1:8000/api/"
+
+                  ProxyPass "/docs" "http://127.0.0.1:8000/docs"
+                  ProxyPassReverse "/docs" "http://127.0.0.1:8000/docs"
+              </VirtualHost>
+              EOF
+
+              # Restart Apache to pick up new config
+              systemctl restart httpd
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
