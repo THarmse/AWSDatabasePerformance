@@ -18,3 +18,11 @@ Deployments
 4. RDS MySQL Instance
 
 When doing IBM, activate Marketplace Pay-as-you-use license first
+
+
+5. ALB
+
+6. CICD Pipeline  
+   a  Create clone of Public repo
+   b. Create GitHub connection in AWS (ireland region)
+   c. Create Cloudformation stack with lowercase name ONLY ie. cicd

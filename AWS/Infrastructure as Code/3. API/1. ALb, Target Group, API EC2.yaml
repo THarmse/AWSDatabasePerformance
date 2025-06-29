@@ -271,26 +271,28 @@ Outputs:
     Description: DNS name of the Application Load Balancer
     Value: !GetAtt ALB.DNSName
     Export:
-      Name: !Sub "${NamePrefix}-ALB-DNSName"
+      Name: app-alb-dnsname
 
   TargetGroupArn:
     Description: ARN of the Target Group
     Value: !Ref ALBTargetGroup
     Export:
-      Name: !Sub "${NamePrefix}-ALB-TargetGroupArn"
+      Name: app-targetgroup-arn
 
   LaunchTemplateId:
     Description: ID of the Launch Template
     Value: !Ref LaunchTemplate
     Export:
-      Name: !Sub "${NamePrefix}-AppTier-LaunchTemplateId"
+      Name: app-launchtpl-id
 
   AutoScalingGroupName:
     Description: Name of the Auto Scaling Group
     Value: !Ref AutoScalingGroup
     Export:
-      Name: !Sub "${NamePrefix}-AppTier-AutoScalingGroupName"
+      Name: app-autoscalinggroup-name
 
   ALBRecordName:
     Description: DNS name in Private Hosted Zone
     Value: !Sub "alb.${HostedZoneDomainName}"
+    Export:
+      Name: app-alb-record-name

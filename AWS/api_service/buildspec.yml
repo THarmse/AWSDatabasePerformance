@@ -1,0 +1,24 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo Installing dependencies
+      - pip install -r requirements.txt -t package
+  pre_build:
+    commands:
+      - echo Preparing artifact structure
+      - mkdir -p package/aws/api_service
+      - cp -r api_service/* package/aws/api_service/
+  build:
+    commands:
+      - echo Build phase - no compilation required
+  post_build:
+    commands:
+      - echo Build completed on `date`
+artifacts:
+  files:
+    - '**/*'
+  base-directory: package

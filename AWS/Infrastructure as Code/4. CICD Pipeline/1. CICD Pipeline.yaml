@@ -2,14 +2,15 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: >
   CloudFormation template - CI/CD Pipeline for deploying FastAPI app to EC2 instance
   Created by Theodor Harmse for University of Liverpool -
-  Uses public GitHub source, CodeBuild for packaging, and CodeDeploy for in-place EC2 deployment.
+  Uses public GitHub source (via AWS CodeStar Connections), CodeBuild for packaging,
+  and CodeDeploy for in-place EC2 deployment.
 
 Parameters:
 
   AppName:
     Type: String
-    Default: UoLAPIService
-    Description: Name of the application (used for naming resources)
+    Default: uol-apiservice
+    Description: Name of the application (used for naming resources, must be lowercase)
 
   GitHubOwner:
     Type: String
@@ -26,6 +27,11 @@ Parameters:
     Default: main
     Description: Branch to watch for changes
 
+  GitHubConnectionArn:
+    Type: String
+    Default: arn:aws:codeconnections:eu-west-1:057088884102:connection/9d302141-dbc8-4488-bacc-3d49a734a84a
+    Description: ARN of the AWS CodeStar Connection to GitHub (must be in AVAILABLE state)
+
   EC2TagKey:
     Type: String
     Default: CodeDeployRole
@@ -38,9 +44,11 @@ Parameters:
 
 Resources:
 
+  # IAM Role for AWS CodeDeploy
   CodeDeployServiceRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub "${AppName}-codedeploy-role"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -61,18 +69,23 @@ Resources:
                   - s3:GetObject*
                   - s3:ListBucket*
                 Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub "${AppName}-codedeploy-role"
 
+  # CodeDeploy Application
   CodeDeployApplication:
     Type: AWS::CodeDeploy::Application
     Properties:
-      ApplicationName: !Sub "${AppName}-CodeDeployApp"
+      ApplicationName: !Sub "${AppName}-codedeploy-app"
       ComputePlatform: Server
 
+  # CodeDeploy Deployment Group
   CodeDeployDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
     Properties:
       ApplicationName: !Ref CodeDeployApplication
-      DeploymentGroupName: !Sub "${AppName}-DeploymentGroup"
+      DeploymentGroupName: !Sub "${AppName}-deployment-group"
       ServiceRoleArn: !GetAtt CodeDeployServiceRole.Arn
       DeploymentConfigName: CodeDeployDefault.OneAtATime
       Ec2TagFilters:
@@ -81,20 +94,23 @@ Resources:
           Type: KEY_AND_VALUE
       DeploymentStyle:
         DeploymentType: IN_PLACE
-        DeploymentOption: WITH_TRAFFIC_CONTROL
+        DeploymentOption: WITHOUT_TRAFFIC_CONTROL
       AutoRollbackConfiguration:
         Enabled: true
         Events:
           - DEPLOYMENT_FAILURE
 
+  # S3 Bucket for Pipeline Artifacts (forces lower case)
   CodePipelineArtifactBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${AppName}-artifacts-${AWS::AccountId}-${AWS::Region}"
+      BucketName: !Sub "${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-artifacts"
 
+  # IAM Role for AWS CodePipeline
   CodePipelineRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub "${AppName}-codepipeline-role"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -114,10 +130,19 @@ Resources:
                   - codedeploy:*
                   - iam:PassRole
                 Resource: "*"
+              - Effect: Allow
+                Action:
+                  - codestar-connections:UseConnection
+                Resource: !Ref GitHubConnectionArn
+      Tags:
+        - Key: Name
+          Value: !Sub "${AppName}-codepipeline-role"
 
+  # IAM Role for AWS CodeBuild
   CodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub "${AppName}-codebuild-role"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -136,11 +161,15 @@ Resources:
                   - codedeploy:*
                   - logs:*
                 Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub "${AppName}-codebuild-role"
 
+  # CodeBuild Project
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Sub "${AppName}-CodeBuildProject"
+      Name: !Sub "${AppName}-codebuild-project"
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Artifacts:
         Type: CODEPIPELINE
@@ -154,11 +183,15 @@ Resources:
       Source:
         Type: CODEPIPELINE
       TimeoutInMinutes: 30
+      Tags:
+        - Key: Name
+          Value: !Sub "${AppName}-codebuild-project"
 
+  # AWS CodePipeline
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: !Sub "${AppName}-Pipeline"
+      Name: !Sub "${AppName}-pipeline"
       RoleArn: !GetAtt CodePipelineRole.Arn
       ArtifactStore:
         Type: S3
@@ -169,16 +202,16 @@ Resources:
             - Name: GitHubSource
               ActionTypeId:
                 Category: Source
-                Owner: ThirdParty
-                Provider: GitHub
+                Owner: AWS
+                Provider: CodeStarSourceConnection
                 Version: 1
               OutputArtifacts:
                 - Name: SourceOutput
               Configuration:
-                Owner: !Ref GitHubOwner
-                Repo: !Ref GitHubRepo
-                Branch: !Ref GitHubBranch
-                PollForSourceChanges: true
+                ConnectionArn: !Ref GitHubConnectionArn
+                FullRepositoryId: !Sub "${GitHubOwner}/${GitHubRepo}"
+                BranchName: !Ref GitHubBranch
+                DetectChanges: true
               RunOrder: 1
         - Name: Build
           Actions:
