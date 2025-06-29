@@ -1,7 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  CloudFormation template - Aurora PostgreSQL Cluster with Route53 and Parameter Store - Created by Theodor Harmse for University of Liverpool -
-  Deploys a single-instance Aurora PostgreSQL cluster, creates a private Route 53 DNS record pointing to it, and stores the DNS name and credentials in Parameter Store.
+  CloudFormation template - Aurora PostgreSQL Cluster with Route53 and Parameter Store
+  Created by Theodor Harmse for University of Liverpool -
+  Deploys a single-instance Aurora PostgreSQL cluster, creates a private Route 53 DNS record pointing to it,
+  and stores the DNS name, username, password, database, and port in a single SecureString Parameter Store
+  parameter for use by the API Service.
 
 Parameters:
 
@@ -128,37 +131,20 @@ Resources:
       ResourceRecords:
         - !GetAtt AuroraPostgreSQLCluster.Endpoint.Address
 
-  AuroraPostgreSQLEndpointParameter:
+  AuroraPostgreSQLCredentialJson:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: "/Liverpool/RDS/AuroraPostgreSQL/Endpoint"
+      Name: "/Liverpool/RDS/AuroraPostgreSQL/Credentials"
       Type: String
-      Value: !Sub "aurorapostgresql.${HostedZoneDomainName}"
-      Description: "Aurora PostgreSQL Private Hosted Zone DNS Name"
-
-  AuroraPostgreSQLUsernameParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: "/Liverpool/RDS/AuroraPostgreSQL/Username"
-      Type: String
-      Value: !Ref DBUsername
-      Description: "Aurora PostgreSQL Admin Username"
-
-  AuroraPostgreSQLPasswordParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: "/Liverpool/RDS/AuroraPostgreSQL/Password"
-      Type: String
-      Value: !Ref DBPassword
-      Description: "Aurora PostgreSQL Admin Password"
-
-  AuroraPostgreSQLDatabaseNameParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: "/Liverpool/RDS/AuroraPostgreSQL/DatabaseName"
-      Type: String
-      Value: !Ref DBName
-      Description: "Aurora PostgreSQL Database Name"
+      Value: !Sub |
+        {
+          "host": "aurorapostgresql.${HostedZoneDomainName}",
+          "username": "${DBUsername}",
+          "password": "${DBPassword}",
+          "database": "${DBName}",
+          "port": 5432
+        }
+      Description: "Aurora PostgreSQL connection details for API Service in JSON format"
 
 Outputs:
 
@@ -184,6 +170,6 @@ Outputs:
     Description: DNS name for Aurora PostgreSQL in Private Hosted Zone
     Value: !Sub "aurorapostgresql.${HostedZoneDomainName}"
 
-  ParameterStoreEndpointName:
-    Description: SSM Parameter Store key for the Endpoint
-    Value: "/Liverpool/RDS/AuroraPostgreSQL/Endpoint"
+  ParameterStoreCredentialPath:
+    Description: SSM Parameter Store path for JSON credentials
+    Value: "/Liverpool/RDS/AuroraPostgreSQL/Credentials"

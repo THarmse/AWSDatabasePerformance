@@ -1,7 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  CloudFormation template - RDS MariaDB with Route53 and Parameter Store - Created by Theodor Harmse for University of Liverpool -
-  Deploys a MariaDB RDS instance, creates a private Route 53 DNS record pointing to it, and stores the DNS name and credentials in Parameter Store.
+  CloudFormation template - RDS MariaDB with Route53 and Parameter Store
+  Created by Theodor Harmse for University of Liverpool -
+  Deploys a MariaDB RDS instance, creates a private Route 53 DNS record pointing to it,
+  and stores the DNS name, username, password, database, and port in a single SecureString Parameter Store
+  parameter for use by the API Service.
 
 Parameters:
 
@@ -120,37 +123,20 @@ Resources:
       ResourceRecords:
         - !GetAtt MariaDBRDSInstance.Endpoint.Address
 
-  MariaDBEndpointParameter:
+  MariaDBCredentialJson:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: "/Liverpool/RDS/MariaDB/Endpoint"
+      Name: "/Liverpool/RDS/MariaDB/Credentials"
       Type: String
-      Value: !Sub "mariadb.${HostedZoneDomainName}"
-      Description: "MariaDB Private Hosted Zone DNS Name"
-
-  MariaDBUsernameParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: "/Liverpool/RDS/MariaDB/Username"
-      Type: String
-      Value: !Ref DBUsername
-      Description: "MariaDB Admin Username"
-
-  MariaDBPasswordParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: "/Liverpool/RDS/MariaDB/Password"
-      Type: String
-      Value: !Ref DBPassword
-      Description: "MariaDB Admin Password"
-
-  MariaDBDatabaseNameParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: "/Liverpool/RDS/MariaDB/DatabaseName"
-      Type: String
-      Value: !Ref DBName
-      Description: "MariaDB Database Name"
+      Value: !Sub |
+        {
+          "host": "mariadb.${HostedZoneDomainName}",
+          "username": "${DBUsername}",
+          "password": "${DBPassword}",
+          "database": "${DBName}",
+          "port": 3306
+        }
+      Description: "MariaDB connection details for API Service in JSON format"
 
 Outputs:
 
@@ -170,6 +156,6 @@ Outputs:
     Description: DNS name for MariaDB in Private Hosted Zone
     Value: !Sub "mariadb.${HostedZoneDomainName}"
 
-  ParameterStoreEndpointName:
-    Description: SSM Parameter Store key for the Endpoint
-    Value: "/Liverpool/RDS/MariaDB/Endpoint"
+  ParameterStoreCredentialPath:
+    Description: SSM Parameter Store path for JSON credentials
+    Value: "/Liverpool/RDS/MariaDB/Credentials"

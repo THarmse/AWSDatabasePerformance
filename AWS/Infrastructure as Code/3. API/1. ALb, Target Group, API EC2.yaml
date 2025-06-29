@@ -1,15 +1,16 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  CloudFormation template - ALB, Target Group, and Auto Scaling Group - Created by Theodor Harmse for University of Liverpool -
-  Deploys an Application Load Balancer, Target Group (linked to ALB), and Auto Scaling Group with EC2 instances in the App Tier.
-  Includes Route53 private record, customizable parameters, and UserData to install Apache at launch.
+  CloudFormation template - ALB, Target Group, and Auto Scaling Group
+  Created by Theodor Harmse for University of Liverpool -
+  Deploys an Application Load Balancer, Target Group, Auto Scaling Group with EC2 instances.
+  Includes Route53 record, Apache install, CodeDeploy agent bootstrap, and IAM role for deployments.
 
 Parameters:
 
   NamePrefix:
     Type: String
     Default: API
-    Description: Prefix for naming resources (ALB, Target Group, ASG, EC2)
+    Description: Prefix for naming resources
 
   HostedZoneDomainName:
     Type: String
@@ -91,6 +92,33 @@ Metadata:
 
 Resources:
 
+  ### IAM Role for EC2 with CodeDeploy permissions ###
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${NamePrefix}-App-EC2Role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSCodeDeployAgentAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+      Tags:
+        - Key: Name
+          Value: !Sub "${NamePrefix}-App-EC2Role"
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub "${NamePrefix}-App-InstanceProfile"
+      Roles:
+        - !Ref EC2InstanceRole
+
+  ### Load Balancer ###
   ALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -136,6 +164,7 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref ALBTargetGroup
 
+  ### Launch Template with UserData to install CodeDeploy Agent ###
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
@@ -143,6 +172,8 @@ Resources:
       LaunchTemplateData:
         InstanceType: !Ref EC2InstanceType
         ImageId: !Ref EC2AmiId
+        IamInstanceProfile:
+          Arn: !GetAtt EC2InstanceProfile.Arn
         SecurityGroupIds:
           - !ImportValue SecurityGroup-AppTierSGId
         UserData: !Base64 |
@@ -152,6 +183,15 @@ Resources:
           systemctl enable httpd
           systemctl start httpd
           echo "<html><body><h1>Welcome to API Instance - Apache is running!</h1></body></html>" > /var/www/html/index.html
+
+          # Install CodeDeploy Agent
+          yum install -y ruby wget
+          cd /home/ec2-user
+          wget https://aws-codedeploy-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/latest/install
+          chmod +x ./install
+          ./install auto
+          systemctl enable codedeploy-agent
+          systemctl start codedeploy-agent
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
@@ -163,7 +203,10 @@ Resources:
             Tags:
               - Key: Name
                 Value: !Sub "${NamePrefix}-App-EC2"
+              - Key: CodeDeployRole
+                Value: AppServer
 
+  ### Auto Scaling Group ###
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
