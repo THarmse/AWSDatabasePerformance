@@ -202,7 +202,7 @@ Resources:
               systemctl start httpd
               echo "<html><body><h1>Welcome to API Instance - Apache is running!</h1></body></html>" > /var/www/html/index.html
 
-              # Install CodeDeploy Agent
+              # Install CodeDeploy Agent only
               yum install -y ruby wget
               cd /home/ec2-user
               wget https://aws-codedeploy-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/latest/install
