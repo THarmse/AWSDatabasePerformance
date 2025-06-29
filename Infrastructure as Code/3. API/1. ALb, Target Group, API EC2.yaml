@@ -101,7 +101,6 @@ Metadata:
 
 Resources:
 
-  ### IAM Role for EC2 with custom inline policy for CodeDeploy ###
   EC2InstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -137,7 +136,6 @@ Resources:
       Roles:
         - !Ref EC2InstanceRole
 
-  ### Load Balancer ###
   ALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -183,7 +181,6 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref ALBTargetGroup
 
-  ### Launch Template with UserData to install CodeDeploy Agent ###
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
@@ -195,22 +192,24 @@ Resources:
           Arn: !GetAtt EC2InstanceProfile.Arn
         SecurityGroupIds:
           - !ImportValue SecurityGroup-AppTierSGId
-        UserData: !Base64 |
-          #!/bin/bash
-          yum update -y
-          yum install -y httpd
-          systemctl enable httpd
-          systemctl start httpd
-          echo "<html><body><h1>Welcome to API Instance - Apache is running!</h1></body></html>" > /var/www/html/index.html
+        UserData:
+          Fn::Base64: 
+            !Sub |
+              #!/bin/bash
+              yum update -y
+              yum install -y httpd
+              systemctl enable httpd
+              systemctl start httpd
+              echo "<html><body><h1>Welcome to API Instance - Apache is running!</h1></body></html>" > /var/www/html/index.html
 
-          # Install CodeDeploy Agent
-          yum install -y ruby wget
-          cd /home/ec2-user
-          wget https://aws-codedeploy-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/latest/install
-          chmod +x ./install
-          ./install auto
-          systemctl enable codedeploy-agent
-          systemctl start codedeploy-agent
+              # Install CodeDeploy Agent
+              yum install -y ruby wget
+              cd /home/ec2-user
+              wget https://aws-codedeploy-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/latest/install
+              chmod +x ./install
+              ./install auto
+              systemctl enable codedeploy-agent
+              systemctl start codedeploy-agent
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
@@ -225,7 +224,6 @@ Resources:
               - Key: CodeDeployRole
                 Value: AppServer
 
-  ### Auto Scaling Group ###
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
@@ -242,7 +240,7 @@ Resources:
         - !Ref ALBTargetGroup
       Tags:
         - Key: Name
-          Value: !Sub "${NamePrefix}-App-ASG"
+          Value: api-app-asg
           PropagateAtLaunch: true
 
   ScalingPolicy:
@@ -271,28 +269,26 @@ Outputs:
     Description: DNS name of the Application Load Balancer
     Value: !GetAtt ALB.DNSName
     Export:
-      Name: app-alb-dnsname
+      Name: api-app-alb-dnsname
 
   TargetGroupArn:
     Description: ARN of the Target Group
     Value: !Ref ALBTargetGroup
     Export:
-      Name: app-targetgroup-arn
+      Name: api-app-targetgroup-arn
 
   LaunchTemplateId:
     Description: ID of the Launch Template
     Value: !Ref LaunchTemplate
     Export:
-      Name: app-launchtpl-id
+      Name: api-app-tier-launchtemplateid
 
   AutoScalingGroupName:
     Description: Name of the Auto Scaling Group
     Value: !Ref AutoScalingGroup
     Export:
-      Name: app-autoscalinggroup-name
+      Name: api-app-tier-autoscalinggroupname
 
   ALBRecordName:
     Description: DNS name in Private Hosted Zone
     Value: !Sub "alb.${HostedZoneDomainName}"
-    Export:
-      Name: app-alb-record-name

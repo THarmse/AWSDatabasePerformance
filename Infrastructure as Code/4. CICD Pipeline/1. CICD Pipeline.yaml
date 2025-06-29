@@ -9,7 +9,7 @@ Parameters:
 
   AppName:
     Type: String
-    Default: uol-apiservice
+    Default: apiservice
     Description: Name of the application (used for naming resources, must be lowercase)
 
   GitHubOwner:
@@ -44,7 +44,6 @@ Parameters:
 
 Resources:
 
-  # IAM Role for AWS CodeDeploy
   CodeDeployServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -73,14 +72,12 @@ Resources:
         - Key: Name
           Value: !Sub "${AppName}-codedeploy-role"
 
-  # CodeDeploy Application
   CodeDeployApplication:
     Type: AWS::CodeDeploy::Application
     Properties:
       ApplicationName: !Sub "${AppName}-codedeploy-app"
       ComputePlatform: Server
 
-  # CodeDeploy Deployment Group
   CodeDeployDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
     Properties:
@@ -100,13 +97,11 @@ Resources:
         Events:
           - DEPLOYMENT_FAILURE
 
-  # S3 Bucket for Pipeline Artifacts (forces lower case)
   CodePipelineArtifactBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-artifacts"
 
-  # IAM Role for AWS CodePipeline
   CodePipelineRole:
     Type: AWS::IAM::Role
     Properties:
@@ -138,7 +133,6 @@ Resources:
         - Key: Name
           Value: !Sub "${AppName}-codepipeline-role"
 
-  # IAM Role for AWS CodeBuild
   CodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
@@ -165,7 +159,6 @@ Resources:
         - Key: Name
           Value: !Sub "${AppName}-codebuild-role"
 
-  # CodeBuild Project
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -187,7 +180,6 @@ Resources:
         - Key: Name
           Value: !Sub "${AppName}-codebuild-project"
 
-  # AWS CodePipeline
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
@@ -248,15 +240,23 @@ Outputs:
   PipelineName:
     Description: Name of the CodePipeline
     Value: !Ref CodePipeline
+    Export:
+      Name: apiservice-pipeline-name
 
   CodeDeployApplicationName:
     Description: Name of the CodeDeploy Application
     Value: !Ref CodeDeployApplication
+    Export:
+      Name: apiservice-codedeploy-application-name
 
   DeploymentGroupName:
     Description: Name of the CodeDeploy Deployment Group
     Value: !Ref CodeDeployDeploymentGroup
+    Export:
+      Name: apiservice-deployment-group-name
 
   ArtifactBucketName:
     Description: S3 bucket used for storing pipeline artifacts
     Value: !Ref CodePipelineArtifactBucket
+    Export:
+      Name: apiservice-artifact-bucket-name
