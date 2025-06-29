@@ -10,11 +10,12 @@ phases:
   pre_build:
     commands:
       - echo Preparing artifacts for CodeDeploy
+      - mkdir -p packaged/api_service
+      - cp -r api_service/* packaged/api_service/
       - mkdir -p packaged/scripts
-      - cp scripts/*.sh packaged/scripts/
+      - cp -r scripts/* packaged/scripts/
       - cp appspec.yml packaged/
       - cp requirements.txt packaged/
-      - cp -r *.py packaged/
   build:
     commands:
       - echo Build phase completed

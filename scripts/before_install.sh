@@ -1,5 +1,7 @@
 #!/bin/bash
-set -e
+set -ex
+echo "Running BeforeInstall script"
 
-echo "Stopping existing uvicorn if running"
-pkill -f uvicorn || true
+# Clean old app dir
+rm -rf /home/ec2-user/app
+mkdir -p /home/ec2-user/app

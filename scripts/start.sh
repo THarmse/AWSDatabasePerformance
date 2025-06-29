@@ -1,5 +1,12 @@
 #!/bin/bash
-set -e
+set -ex
+echo "Running ApplicationStart script"
 
-echo "Starting uvicorn server"
-/usr/local/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --root-path /mysql/ --log-level info &
+# Kill any old uvicorn
+pkill -f uvicorn || true
+
+cd /home/ec2-user/app/api_service
+source ../venv/bin/activate
+
+# Start uvicorn in background
+nohup uvicorn main:app --host 127.0.0.1 --port 8000 > /home/ec2-user/app/uvicorn.log 2>&1 &

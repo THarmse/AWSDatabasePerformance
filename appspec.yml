@@ -2,9 +2,12 @@ version: 0.0
 os: linux
 
 files:
-  - source: /
-    destination: /home/ec2-user/app
-    overwrite: yes
+  - source: api_service
+    destination: /home/ec2-user/app/api_service
+  - source: scripts
+    destination: /home/ec2-user/app/scripts
+  - source: requirements.txt
+    destination: /home/ec2-user/app/requirements.txt
 
 hooks:
   BeforeInstall:
