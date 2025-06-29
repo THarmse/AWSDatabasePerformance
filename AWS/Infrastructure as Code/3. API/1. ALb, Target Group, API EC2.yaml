@@ -2,8 +2,8 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: >
   CloudFormation template - ALB, Target Group, and Auto Scaling Group
   Created by Theodor Harmse for University of Liverpool -
-  Deploys an Application Load Balancer, Target Group, Auto Scaling Group with EC2 instances.
-  Includes Route53 record, Apache install, CodeDeploy agent bootstrap, and IAM role for deployments.
+  Deploys an ALB, Target Group, Auto Scaling Group with EC2 instances.
+  Includes Route53 record, Apache install, CodeDeploy agent bootstrap, and a custom IAM Role and Policy for deployments.
 
 Parameters:
 
@@ -101,7 +101,7 @@ Metadata:
 
 Resources:
 
-  ### IAM Role for EC2 with CodeDeploy permissions ###
+  ### IAM Role for EC2 with custom inline policy for CodeDeploy ###
   EC2InstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -113,9 +113,19 @@ Resources:
             Principal:
               Service: ec2.amazonaws.com
             Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSCodeDeployAgentAccess
-        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+      Policies:
+        - PolicyName: !Sub "${NamePrefix}-App-EC2Policy"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codedeploy:*
+                  - s3:Get*
+                  - s3:ListBucket
+                  - logs:*
+                  - ec2:Describe*
+                Resource: "*"
       Tags:
         - Key: Name
           Value: !Sub "${NamePrefix}-App-EC2Role"
