@@ -2,21 +2,22 @@ version: 0.2
 
 phases:
   install:
+    runtime-versions:
+      python: 3.11
     commands:
-      - echo Installing dependencies
-      - pip install -r requirements.txt --target ./package
+      - echo Installing build dependencies
+      - pip install --upgrade pip
   pre_build:
     commands:
-      - echo Preparing artifact
-      - mkdir -p package/api_service
-      - cp -r api_service/* package/api_service/
-      - mkdir -p package/scripts
-      - cp -r scripts/* package/scripts/
-      - cp appspec.yml package/
-      - cp requirements.txt package/
+      - echo Preparing artifacts for CodeDeploy
+      - mkdir -p packaged/scripts
+      - cp scripts/*.sh packaged/scripts/
+      - cp appspec.yml packaged/
+      - cp requirements.txt packaged/
+      - cp -r *.py packaged/
   build:
     commands:
-      - echo Build complete
+      - echo Build phase completed
   post_build:
     commands:
       - echo Packaging complete
@@ -24,4 +25,4 @@ phases:
 artifacts:
   files:
     - '**/*'
-  base-directory: package
+  base-directory: packaged
