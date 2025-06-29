@@ -3,7 +3,7 @@ Description: >
   CloudFormation template - ALB, Target Group, and Auto Scaling Group
   Created by Theodor Harmse for University of Liverpool -
   Deploys an ALB, Target Group, Auto Scaling Group with EC2 instances.
-  Includes Route53 record and CodeDeploy agent bootstrap for deployments.
+  Includes Route53 record, CodeDeploy agent bootstrap, and static placeholder healthcheck site.
 
 Parameters:
 
@@ -198,7 +198,7 @@ Resources:
               #!/bin/bash
               yum update -y
 
-              # Install CodeDeploy Agent 
+              # Install CodeDeploy Agent
               yum install -y ruby wget
               cd /home/ec2-user
               wget https://aws-codedeploy-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/latest/install
@@ -206,6 +206,16 @@ Resources:
               ./install auto
               systemctl enable codedeploy-agent
               systemctl start codedeploy-agent
+
+              # Install Python3 for tiny server
+              yum install -y python3
+
+              # Create placeholder static healthcheck site
+              mkdir -p /home/ec2-user/healthcheck
+              echo "<html><body><h1>Placeholder Healthcheck OK</h1></body></html>" > /home/ec2-user/healthcheck/index.html
+
+              # Start simple HTTP server on port 80 to respond to ALB health checks
+              nohup python3 -m http.server 80 --directory /home/ec2-user/healthcheck > /home/ec2-user/healthcheck.log 2>&1 &
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
