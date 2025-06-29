@@ -2,21 +2,21 @@ version: 0.0
 os: linux
 
 files:
-  - source: /
+  - source: package/
     destination: /home/ec2-user/app
 
 hooks:
   BeforeInstall:
-    - location: scripts/before_install.sh
+    - location: package/scripts/before_install.sh
       timeout: 300
       runas: root
 
   AfterInstall:
-    - location: scripts/after_install.sh
+    - location: package/scripts/after_install.sh
       timeout: 300
       runas: root
 
   ApplicationStart:
-    - location: scripts/start.sh
+    - location: package/scripts/start.sh
       timeout: 300
       runas: root
