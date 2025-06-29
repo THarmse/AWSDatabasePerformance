@@ -124,6 +124,7 @@ Resources:
                   - s3:ListBucket
                   - logs:*
                   - ec2:Describe*
+                  - ssm:GetParameter
                 Resource: "*"
       Tags:
         - Key: Name

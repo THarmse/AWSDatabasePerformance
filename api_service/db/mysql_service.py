@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from api_service.db.base import get_mysql_connection 
 
 # Parameter Store name for MySQL credentials
-PARAM_NAME = "/uol/project/mysql/credentials"
+PARAM_NAME = "/Liverpool/RDS/MySQL/Credentials"
 
 # Table name
 TABLE_NAME = "transaction_records"
