@@ -3,6 +3,7 @@
 # Helper module for reading database credentials from AWS Systems Manager Parameter Store
 
 import boto3
+import os
 
 REGION = os.environ.get("AWS_REGION", "eu-west-1") 
 
