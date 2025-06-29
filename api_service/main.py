@@ -5,7 +5,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from db.mysql_service import (
+from api_service.db.mysql_service import (
     initialize_table,
     load_sample_data,
     select_transaction,
