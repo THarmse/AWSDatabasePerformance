@@ -54,7 +54,7 @@ Parameters:
 
   EC2VolumeSize:
     Type: Number
-    Default: 20
+    Default: 30
     Description: EC2 root EBS volume size (GB)
 
   MinSize:
