@@ -7,7 +7,7 @@ files:
   - source: scripts
     destination: /home/ec2-user/app/scripts
   - source: requirements.txt
-    destination: /home/ec2-user/app/requirements.txt
+    destination: /home/ec2-user/app
 
 hooks:
   BeforeInstall:

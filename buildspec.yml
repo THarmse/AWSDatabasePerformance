@@ -12,8 +12,12 @@ phases:
     commands:
       - echo "Cleaning packaged directory"
       - rm -rf packaged
-      - echo "Checking requirements.txt is a file"
-      - if [ ! -f requirements.txt ]; then echo "ERROR: requirements.txt missing!"; exit 1; fi
+      - |
+          echo "Checking requirements.txt is a file"
+          if [ ! -f requirements.txt ]; then
+            echo "ERROR: requirements.txt missing!"
+            exit 1
+          fi
       - echo "Preparing artifacts for CodeDeploy"
       - mkdir -p packaged/api_service
       - cp -r api_service/* packaged/api_service/
