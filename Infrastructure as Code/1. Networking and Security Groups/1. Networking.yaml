@@ -126,7 +126,7 @@ Parameters:
       - 0
       - 1
       - 2
-    Default: "0"
+    Default: "1"
     Description: Number of NAT Gateways to create
 Conditions:
   CreateNATGatewayA: !Or
