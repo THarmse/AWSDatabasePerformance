@@ -12,6 +12,14 @@ Parameters:
     Default: API
     Description: Prefix for naming resources
 
+  ALBScheme:
+    Type: String
+    Default: internet-facing
+    AllowedValues:
+      - internet-facing
+      - internal
+    Description: ALB Scheme (internet-facing or internal)
+
   HostedZoneDomainName:
     Type: String
     Default: liverpool.com
@@ -76,6 +84,7 @@ Metadata:
           default: ALB and Target Group Configuration
         Parameters:
           - NamePrefix
+          - ALBScheme
           - HostedZoneDomainName
           - TargetGroupPort
           - HealthCheckPath
@@ -123,7 +132,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: !Sub "${NamePrefix}-App-ALB"
-      Scheme: internal
+      Scheme: !Ref ALBScheme
       Subnets:
         - !ImportValue Networking-PublicSubnet3Id
         - !ImportValue Networking-PublicSubnet4Id
