@@ -4,6 +4,8 @@
 
 import uuid
 import random
+from typing import Optional
+from fastapi import Body
 from datetime import datetime, timedelta
 from api_service.db.base import get_mysql_connection 
 
@@ -57,7 +59,7 @@ async def load_sample_data():
         await insert_transaction(record=None)
     return {"message": "20 sample records inserted successfully."}
 
-async def insert_transaction(record: dict = None):
+async def insert_transaction(record: Optional[dict] = Body(None)):
     """
     Inserts a new transaction record into the table.
     If no record is provided, generates a new random sample record.
