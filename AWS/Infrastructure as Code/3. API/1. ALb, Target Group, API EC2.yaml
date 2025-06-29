@@ -1,0 +1,234 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation template - ALB, Target Group, and Auto Scaling Group - Created by Theodor Harmse for University of Liverpool -
+  Deploys an Application Load Balancer, Target Group (linked to ALB), and Auto Scaling Group with EC2 instances in the App Tier.
+  Includes Route53 private record, customizable parameters, and UserData to install Apache at launch.
+
+Parameters:
+
+  NamePrefix:
+    Type: String
+    Default: API
+    Description: Prefix for naming resources (ALB, Target Group, ASG, EC2)
+
+  HostedZoneDomainName:
+    Type: String
+    Default: liverpool.com
+    Description: Base domain for the private hosted zone
+
+  EC2InstanceType:
+    Type: String
+    Default: t3.medium
+    AllowedValues:
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+      - m6i.large
+      - m6i.xlarge
+    Description: EC2 Instance type
+
+  EC2AmiId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-0fab1b527ffa9b942
+    Description: AMI ID for EC2 instances
+
+  TargetGroupPort:
+    Type: Number
+    Default: 80
+    Description: Port for Target Group registration
+
+  HealthCheckPath:
+    Type: String
+    Default: /
+    Description: Health Check Path for ALB Target Group
+
+  EC2VolumeSize:
+    Type: Number
+    Default: 20
+    Description: EC2 root EBS volume size (GB)
+
+  MinSize:
+    Type: Number
+    Default: 1
+    Description: Minimum number of EC2 instances in Auto Scaling Group
+
+  MaxSize:
+    Type: Number
+    Default: 1
+    Description: Maximum number of EC2 instances in Auto Scaling Group
+
+  DesiredCapacity:
+    Type: Number
+    Default: 1
+    Description: Desired number of EC2 instances in Auto Scaling Group
+
+  ScaleCpuThreshold:
+    Type: Number
+    Default: 80
+    Description: Target average CPU utilization (%) to trigger scale-out/in
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: ALB and Target Group Configuration
+        Parameters:
+          - NamePrefix
+          - HostedZoneDomainName
+          - TargetGroupPort
+          - HealthCheckPath
+      - Label:
+          default: EC2 and Auto Scaling Configuration
+        Parameters:
+          - EC2InstanceType
+          - EC2AmiId
+          - EC2VolumeSize
+          - MinSize
+          - MaxSize
+          - DesiredCapacity
+          - ScaleCpuThreshold
+
+Resources:
+
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub "${NamePrefix}-App-ALB"
+      Scheme: internal
+      Subnets:
+        - !ImportValue Networking-PublicSubnet3Id
+        - !ImportValue Networking-PublicSubnet4Id
+      SecurityGroups:
+        - !ImportValue SecurityGroup-ELBSGId
+      Type: application
+      IpAddressType: ipv4
+      Tags:
+        - Key: Name
+          Value: !Sub "${NamePrefix}-App-ALB"
+
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${NamePrefix}-App-TG"
+      VpcId: !ImportValue Networking-VPCId
+      Protocol: HTTP
+      Port: !Ref TargetGroupPort
+      TargetType: instance
+      HealthCheckEnabled: true
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: !Ref HealthCheckPath
+      Matcher:
+        HttpCode: 200
+      LoadBalancerArns:
+        - !Ref ALB
+      Tags:
+        - Key: Name
+          Value: !Sub "${NamePrefix}-App-TG"
+
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ALB
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "${NamePrefix}-App-LT"
+      LaunchTemplateData:
+        InstanceType: !Ref EC2InstanceType
+        ImageId: !Ref EC2AmiId
+        SecurityGroupIds:
+          - !ImportValue SecurityGroup-AppTierSGId
+        UserData: !Base64 |
+          #!/bin/bash
+          yum update -y
+          yum install -y httpd
+          systemctl enable httpd
+          systemctl start httpd
+          echo "<html><body><h1>Welcome to API Instance - Apache is running!</h1></body></html>" > /var/www/html/index.html
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeSize: !Ref EC2VolumeSize
+              VolumeType: gp3
+              DeleteOnTermination: true
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub "${NamePrefix}-App-EC2"
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - !ImportValue Networking-PrivateSubnet3Id
+        - !ImportValue Networking-PrivateSubnet4Id
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      MinSize: !Ref MinSize
+      MaxSize: !Ref MaxSize
+      DesiredCapacity: !Ref DesiredCapacity
+      TargetGroupARNs:
+        - !Ref ALBTargetGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${NamePrefix}-App-ASG"
+          PropagateAtLaunch: true
+
+  ScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: !Ref ScaleCpuThreshold
+
+  ALBRecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !ImportValue PrivateHostedZoneId
+      Name: !Sub "alb.${HostedZoneDomainName}"
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - !GetAtt ALB.DNSName
+
+Outputs:
+
+  ALBDNSName:
+    Description: DNS name of the Application Load Balancer
+    Value: !GetAtt ALB.DNSName
+    Export:
+      Name: !Sub "${NamePrefix}-ALB-DNSName"
+
+  TargetGroupArn:
+    Description: ARN of the Target Group
+    Value: !Ref ALBTargetGroup
+    Export:
+      Name: !Sub "${NamePrefix}-ALB-TargetGroupArn"
+
+  LaunchTemplateId:
+    Description: ID of the Launch Template
+    Value: !Ref LaunchTemplate
+    Export:
+      Name: !Sub "${NamePrefix}-AppTier-LaunchTemplateId"
+
+  AutoScalingGroupName:
+    Description: Name of the Auto Scaling Group
+    Value: !Ref AutoScalingGroup
+    Export:
+      Name: !Sub "${NamePrefix}-AppTier-AutoScalingGroupName"
+
+  ALBRecordName:
+    Description: DNS name in Private Hosted Zone
+    Value: !Sub "alb.${HostedZoneDomainName}"
