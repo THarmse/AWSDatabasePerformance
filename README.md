@@ -26,3 +26,4 @@ When doing IBM, activate Marketplace Pay-as-you-use license first
    a  Create clone of Public repo
    b. Create GitHub connection in AWS (ireland region)
    c. Create Cloudformation stack with lowercase name ONLY ie. cicd 
+	a 
