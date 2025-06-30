@@ -53,11 +53,11 @@ async def initialize_table():
 
 async def load_sample_data():
     """
-    Calls insert_transaction() 20 times to insert 20 random records.
+    Calls insert_transaction() 100 times to insert 100 random records.
     """
-    for _ in range(20):
+    for _ in range(100):
         await insert_transaction(record=None)
-    return {"message": "20 sample records inserted successfully."}
+    return {"message": "100 sample records inserted successfully."}
 
 async def insert_transaction(record: Optional[dict] = Body(None)):
     """

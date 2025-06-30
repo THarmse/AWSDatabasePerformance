@@ -27,12 +27,12 @@ Parameters:
 
   DBClusterIdentifier:
     Type: String
-    Default: liv-aurora-cluster
+    Default: liv-aurora-mysql-cluster
     Description: The name for the Aurora DB cluster
 
   DBInstanceIdentifier:
     Type: String
-    Default: liv-aurora-instance
+    Default: liv-aurora-mysql-instance
     Description: The name for the Aurora DB instance
 
   DBInstanceClass:

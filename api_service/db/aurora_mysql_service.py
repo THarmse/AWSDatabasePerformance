@@ -52,11 +52,11 @@ async def initialize_table():
 
 async def load_sample_data():
     """
-    Inserts 20 random sample records into the transaction_records table.
+    Inserts 100 random sample records into the transaction_records table.
     """
-    for _ in range(20):
+    for _ in range(100):
         await insert_transaction(record=None)
-    return {"message": "20 sample records inserted successfully into Aurora MySQL."}
+    return {"message": "100 sample records inserted successfully into Aurora MySQL."}
 
 async def insert_transaction(record: Optional[dict] = Body(None)):
     """

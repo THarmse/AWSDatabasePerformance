@@ -27,7 +27,7 @@ Parameters:
 
   DBInstanceIdentifier:
     Type: String
-    Default: liv-rds-PostgreSQL
+    Default: liv-rds-PostgreSQLa
     Description: The name for the RDS DB instance
 
   DBInstanceClass:

@@ -98,7 +98,7 @@ async def api_mysql_insert_transaction(record: TransactionRecord):
 # Aurora MySQL Endpoints
 # -------------------------
 
-@app.get("/aurora/initialize")
+@app.get("/AuroraMySQL/initialize")
 async def api_aurora_initialize_table():
     """
     Initialize the transaction_records table in Aurora MySQL.
@@ -110,7 +110,7 @@ async def api_aurora_initialize_table():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/aurora/load-sample-data")
+@app.post("/AuroraMySQL/load-sample-data")
 async def api_aurora_load_sample_data():
     """
     Insert 20 randomly generated sample records into the Aurora MySQL table.
@@ -122,7 +122,7 @@ async def api_aurora_load_sample_data():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/aurora/select-random")
+@app.get("/AuroraMySQL/select-random")
 async def api_aurora_select_random_transaction():
     """
     Retrieve one random transaction record from the Aurora MySQL table.
@@ -134,7 +134,7 @@ async def api_aurora_select_random_transaction():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/aurora/insert")
+@app.post("/AuroraMySQL/insert")
 async def api_aurora_insert_transaction(record: TransactionRecord):
     """
     Insert a new transaction record into Aurora MySQL.
@@ -145,3 +145,4 @@ async def api_aurora_insert_transaction(record: TransactionRecord):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
