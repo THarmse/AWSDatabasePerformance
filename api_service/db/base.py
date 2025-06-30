@@ -84,14 +84,14 @@ def get_mssqlserver_connection(param_name: str):
 def get_oracle_connection(param_name: str):
     """
     Oracle 19c connection using cx_Oracle.
-    The service_name is always 'performance_db'.
+    The service_name is always 'ORCL'.
     """
     import cx_Oracle
     creds = json.loads(get_db_credentials(param_name))
     dsn = cx_Oracle.makedsn(
         creds['host'],
         int(creds.get('port', 1521)),
-        service_name="performance_db"
+        service_name=creds['database']
     )
     return cx_Oracle.connect(
         user=creds['username'],
