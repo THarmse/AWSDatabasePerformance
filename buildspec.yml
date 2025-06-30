@@ -23,6 +23,7 @@ phases:
       - cp -r api_service/* packaged/api_service/
       - mkdir -p packaged/scripts
       - cp -r scripts/* packaged/scripts/
+      - mkdir -p packaged/oracle_rpms
       - cp -r oracle_rpms/* packaged/oracle_rpms/
       - cp appspec.yml packaged/
       - cp requirements.txt packaged/
