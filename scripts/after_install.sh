@@ -30,6 +30,12 @@ cat <<EOF > /etc/httpd/conf.d/app.conf
     ProxyPass /AuroraMySQL/ http://127.0.0.1:8000/AuroraMySQL/
     ProxyPassReverse /AuroraMySQL/ http://127.0.0.1:8000/AuroraMySQL/
 
+    ProxyPass /postgresql/ http://127.0.0.1:8000/postgresql/
+    ProxyPassReverse /postgresql/ http://127.0.0.1:8000/postgresql/
+
+    ProxyPass /AuroraPostgreSQL/ http://127.0.0.1:8000/AuroraPostgreSQL/
+    ProxyPassReverse /AuroraPostgreSQL/ http://127.0.0.1:8000/AuroraPostgreSQL/
+
     ProxyPass /docs http://127.0.0.1:8000/docs
     ProxyPassReverse /docs http://127.0.0.1:8000/docs
 </VirtualHost>

@@ -7,7 +7,7 @@ import random
 from typing import Optional
 from fastapi import Body
 from datetime import datetime, timedelta
-from api_service.db.base import get_mysql_connection
+from api_service.db.base import get_aurora_mysql_connection
 
 # Parameter Store name for Aurora MySQL credentials
 PARAM_NAME = "/Liverpool/RDS/AuroraMySQL/Credentials"
@@ -35,7 +35,7 @@ async def get_connection():
     """
     Returns a new pymysql connection to Aurora MySQL using the shared base utility.
     """
-    return get_mysql_connection(PARAM_NAME)
+    return get_aurora_mysql_connection(PARAM_NAME)
 
 async def initialize_table():
     """

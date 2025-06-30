@@ -22,6 +22,22 @@ from api_service.db.aurora_mysql_service import (
     insert_transaction as aurora_insert_transaction
 )
 
+# Import PostgreSQL service functions
+from api_service.db.postgresql_service import (
+    initialize_table as postgresql_initialize_table,
+    load_sample_data as postgresql_load_sample_data,
+    select_transaction as postgresql_select_transaction,
+    insert_transaction as postgresql_insert_transaction
+)
+
+# Import Aurora PostgreSQL service functions
+from api_service.db.aurora_postgresql_service import (
+    initialize_table as aurora_postgresql_initialize_table,
+    load_sample_data as aurora_postgresql_load_sample_data,
+    select_transaction as aurora_postgresql_select_transaction,
+    insert_transaction as aurora_postgresql_insert_transaction
+)
+
 # Define FastAPI app
 app = FastAPI(
     title="University of Liverpool - Transaction Records API",
@@ -146,3 +162,108 @@ async def api_aurora_insert_transaction(record: TransactionRecord):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# -------------------------
+# PostgreSQL Endpoints
+# -------------------------
+
+@app.get("/postgresql/initialize")
+async def api_postgresql_initialize_table():
+    """
+    Initialize the transaction_records table in PostgreSQL.
+    """
+    try:
+        result = await postgresql_initialize_table()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/postgresql/load-sample-data")
+async def api_postgresql_load_sample_data():
+    """
+    Insert 100 randomly generated sample records into the PostgreSQL table.
+    """
+    try:
+        result = await postgresql_load_sample_data()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/postgresql/select-random")
+async def api_postgresql_select_random_transaction():
+    """
+    Retrieve one random transaction record from the PostgreSQL table.
+    """
+    try:
+        result = await postgresql_select_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/postgresql/insert")
+async def api_postgresql_insert_transaction(record: TransactionRecord):
+    """
+    Insert a new transaction record into PostgreSQL.
+    transaction_id is generated automatically.
+    """
+    try:
+        result = await postgresql_insert_transaction(record.dict())
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# -------------------------
+# Aurora PostgreSQL Endpoints
+# -------------------------
+
+@app.get("/AuroraPostgreSQL/initialize")
+async def api_aurora_postgresql_initialize_table():
+    """
+    Initialize the transaction_records table in Aurora PostgreSQL.
+    """
+    try:
+        result = await aurora_postgresql_initialize_table()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/AuroraPostgreSQL/load-sample-data")
+async def api_aurora_postgresql_load_sample_data():
+    """
+    Insert 100 randomly generated sample records into the Aurora PostgreSQL table.
+    """
+    try:
+        result = await aurora_postgresql_load_sample_data()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/AuroraPostgreSQL/select-random")
+async def api_aurora_postgresql_select_random_transaction():
+    """
+    Retrieve one random transaction record from the Aurora PostgreSQL table.
+    """
+    try:
+        result = await aurora_postgresql_select_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/AuroraPostgreSQL/insert")
+async def api_aurora_postgresql_insert_transaction(record: TransactionRecord):
+    """
+    Insert a new transaction record into Aurora PostgreSQL.
+    transaction_id is generated automatically.
+    """
+    try:
+        result = await aurora_postgresql_insert_transaction(record.dict())
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
