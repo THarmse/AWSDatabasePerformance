@@ -8,6 +8,8 @@ files:
     destination: /home/ec2-user/app/scripts
   - source: requirements.txt
     destination: /home/ec2-user/app
+  - source: oracle_rpms
+    destination: /home/ec2-user/app/oracle_rpms
 
 hooks:
   BeforeInstall:
