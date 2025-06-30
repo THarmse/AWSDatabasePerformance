@@ -59,7 +59,7 @@ async def initialize_table():
         f"UID={creds['username']};"
         f"PWD={creds['password']}"
     )
-    master_conn = pyodbc.connect(master_conn_str)
+    master_conn = pyodbc.connect(master_conn_str, autocommit=True)
     try:
         with master_conn.cursor() as cursor:
             cursor.execute(f"IF DB_ID(N'{database_name}') IS NULL CREATE DATABASE [{database_name}]")
