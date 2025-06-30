@@ -54,6 +54,15 @@ from api_service.db.mssql_service import (
     insert_transaction as mssql_insert_transaction
 )
 
+# Import Oracle service functions
+from api_service.db.oracle_service import (
+    initialize_table as oracle_initialize_table,
+    load_sample_data as oracle_load_sample_data,
+    select_transaction as oracle_select_transaction,
+    insert_transaction as oracle_insert_transaction
+)
+
+
 
 
 # Define FastAPI app
@@ -386,6 +395,58 @@ async def api_mssql_insert_transaction(record: TransactionRecord):
     """
     try:
         result = await mssql_insert_transaction(record.dict())
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# -------------------------
+# Oracle Endpoints
+# -------------------------
+
+@app.get("/oracle/initialize")
+async def api_oracle_initialize_table():
+    """
+    Initialize the transaction_records table in Oracle.
+    """
+    try:
+        result = await oracle_initialize_table()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/oracle/load-sample-data")
+async def api_oracle_load_sample_data():
+    """
+    Insert 100 randomly generated sample records into the Oracle table.
+    """
+    try:
+        result = await oracle_load_sample_data()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/oracle/select-random")
+async def api_oracle_select_random_transaction():
+    """
+    Retrieve one random transaction record from the Oracle table.
+    """
+    try:
+        result = await oracle_select_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/oracle/insert")
+async def api_oracle_insert_transaction(record: TransactionRecord):
+    """
+    Insert a new transaction record into Oracle.
+    transaction_id is generated automatically.
+    """
+    try:
+        result = await oracle_insert_transaction(record.dict())
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

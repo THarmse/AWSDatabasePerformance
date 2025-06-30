@@ -42,6 +42,9 @@ cat <<EOF > /etc/httpd/conf.d/app.conf
     ProxyPass /mssql/ http://127.0.0.1:8000/mssql/
     ProxyPassReverse /mssql/ http://127.0.0.1:8000/mssql/
 
+    ProxyPass /oracle/ http://127.0.0.1:8000/oracle/
+    ProxyPassReverse /oracle/ http://127.0.0.1:8000/oracle/
+
     ProxyPass /docs http://127.0.0.1:8000/docs
     ProxyPassReverse /docs http://127.0.0.1:8000/docs
 </VirtualHost>
