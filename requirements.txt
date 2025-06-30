@@ -2,6 +2,3 @@ fastapi
 uvicorn
 pymysql
 boto3
-psycopg2-binary
-pyodbc
-cx_Oracle
