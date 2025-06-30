@@ -62,6 +62,14 @@ from api_service.db.oracle_service import (
     insert_transaction as oracle_insert_transaction
 )
 
+# Import DynamoDB service functions
+from api_service.db.dynamodb_service import (
+    initialize_table as dynamodb_initialize_table,
+    load_sample_data as dynamodb_load_sample_data,
+    select_transaction as dynamodb_select_transaction,
+    insert_transaction as dynamodb_insert_transaction
+)
+
 
 
 
@@ -447,6 +455,58 @@ async def api_oracle_insert_transaction(record: TransactionRecord):
     """
     try:
         result = await oracle_insert_transaction(record.dict())
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# -------------------------
+# DynamoDB Endpoints
+# -------------------------
+
+@app.get("/dynamodb/initialize")
+async def api_dynamodb_initialize_table():
+    """
+    Initialize the transaction_records table in DynamoDB.
+    """
+    try:
+        result = await dynamodb_initialize_table()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/dynamodb/load-sample-data")
+async def api_dynamodb_load_sample_data():
+    """
+    Insert 100 randomly generated sample records into the DynamoDB table.
+    """
+    try:
+        result = await dynamodb_load_sample_data()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/dynamodb/select-random")
+async def api_dynamodb_select_random_transaction():
+    """
+    Retrieve one random transaction record from the DynamoDB table.
+    """
+    try:
+        result = await dynamodb_select_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/dynamodb/insert")
+async def api_dynamodb_insert_transaction(record: TransactionRecord):
+    """
+    Insert a new transaction record into DynamoDB.
+    transaction_id is generated automatically.
+    """
+    try:
+        result = await dynamodb_insert_transaction(record.dict())
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
