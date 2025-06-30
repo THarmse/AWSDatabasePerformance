@@ -46,6 +46,15 @@ from api_service.db.mariadb_service import (
     insert_transaction as mariadb_insert_transaction
 )
 
+# Import Microsoft SQL Server service functions
+from api_service.db.mssql_service import (
+    initialize_table as mssql_initialize_table,
+    load_sample_data as mssql_load_sample_data,
+    select_transaction as mssql_select_transaction,
+    insert_transaction as mssql_insert_transaction
+)
+
+
 
 # Define FastAPI app
 app = FastAPI(
@@ -325,6 +334,58 @@ async def api_mariadb_insert_transaction(record: TransactionRecord):
     """
     try:
         result = await mariadb_insert_transaction(record.dict())
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# -------------------------
+# Microsoft SQL Server Endpoints
+# -------------------------
+
+@app.get("/mssql/initialize")
+async def api_mssql_initialize_table():
+    """
+    Initialize the transaction_records table in Microsoft SQL Server.
+    """
+    try:
+        result = await mssql_initialize_table()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/mssql/load-sample-data")
+async def api_mssql_load_sample_data():
+    """
+    Insert 100 randomly generated sample records into the Microsoft SQL Server table.
+    """
+    try:
+        result = await mssql_load_sample_data()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/mssql/select-random")
+async def api_mssql_select_random_transaction():
+    """
+    Retrieve one random transaction record from the Microsoft SQL Server table.
+    """
+    try:
+        result = await mssql_select_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/mssql/insert")
+async def api_mssql_insert_transaction(record: TransactionRecord):
+    """
+    Insert a new transaction record into Microsoft SQL Server.
+    transaction_id is generated automatically.
+    """
+    try:
+        result = await mssql_insert_transaction(record.dict())
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

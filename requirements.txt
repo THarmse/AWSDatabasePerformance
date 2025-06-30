@@ -1,9 +1,11 @@
 fastapi
 uvicorn
-pymysql
 boto3
+pymysql
 psycopg2-binary
 pyodbc
+pymssql
 cx_Oracle
 ibm_db
-
+ibm_db_sa
+SQLAlchemy
