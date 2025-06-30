@@ -23,12 +23,14 @@ sudo yum makecache
 # Install Microsoft ODBC Driver 17 for SQL Server
 sudo ACCEPT_EULA=Y yum install -y msodbcsql17
 
+# Install Oracle Instant Client from local RPMs
+##echo "Installing Oracle Instant Client RPMs from /home/ec2-user/app/oracle_rpms ..."
+##sudo yum install -y /home/ec2-user/app/oracle_rpms/*.rpm
+
+
+
 # Clean and refresh metadata
 sudo yum clean all
 sudo yum makecache
-
-# Install Oracle Instant Client from local RPMs
-echo "Installing Oracle Instant Client RPMs from /home/ec2-user/app/oracle_rpms ..."
-sudo yum install -y /home/ec2-user/app/oracle_rpms/*.rpm
 
 echo "BeforeInstall script completed successfully."
