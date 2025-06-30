@@ -2,14 +2,15 @@ version: 0.0
 os: linux
 
 files:
+  - source: oracle_rpms
+    destination: /home/ec2-user/app/oracle_rpms
   - source: api_service
     destination: /home/ec2-user/app/api_service
   - source: scripts
     destination: /home/ec2-user/app/scripts
   - source: requirements.txt
     destination: /home/ec2-user/app
-  - source: oracle_rpms
-    destination: /home/ec2-user/app/oracle_rpms
+
 
 hooks:
   BeforeInstall:
