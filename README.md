@@ -31,7 +31,23 @@ When doing IBM, activate Marketplace Pay-as-you-use license first
 
 
 	Troubleshooting
-source /home/ec2-user/app/venv/bin/activate
+
+Manual Install (with EC2 - Key Pair)
+sudo yum update -y
+sudo yum install -y ruby wget
+cd /home/ec2-user
+wget https://aws-codedeploy-eu-west-1.s3.eu-west-1.amazonaws.com/latest/install
+chmod +x ./install
+sudo ./install auto
+sudo systemctl enable codedeploy-agent
+sudo systemctl start codedeploy-agent
+
+
+
+
+
+
+1. source /home/ec2-user/app/venv/bin/activate
 cd /home/ec2-user/app
 uvicorn api_service.main:app --host 127.0.0.1 --port 8000
 
