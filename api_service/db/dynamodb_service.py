@@ -9,6 +9,7 @@ from typing import Optional
 from fastapi import Body
 from datetime import datetime, timedelta
 import boto3
+from decimal import Decimal
 from botocore.exceptions import ClientError
 from api_service.db.base import get_db_credentials
 
@@ -76,8 +77,9 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
         statuses = ["Completed", "Pending", "Failed", "Refunded"]
 
         quantity = random.randint(1, 5)
-        unit_price = round(random.uniform(5.0, 100.0), 2)
-        total_amount = round(quantity * unit_price, 2)
+        unit_price = Decimal(str(round(random.uniform(5.0, 100.0), 2)))
+        total_amount = Decimal(str(round(quantity * unit_price, 2)))
+
 
         record = {
             "user_id": f"user-{random.randint(100, 999)}",
