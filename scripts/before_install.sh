@@ -22,7 +22,3 @@ sudo yum makecache
 
 # Install Microsoft ODBC Driver 17 for SQL Server
 sudo ACCEPT_EULA=Y yum install -y msodbcsql17
-
-# Install Oracle Instant Client
-sudo yum install -y oracle-instantclient-release-el8
-sudo yum install -y oracle-instantclient-basic oracle-instantclient-devel
