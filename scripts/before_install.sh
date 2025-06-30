@@ -19,7 +19,7 @@ sudo curl -o /etc/yum.repos.d/msprod.repo https://packages.microsoft.com/config/
 # Install Microsoft ODBC Driver 17 for SQL Server
 sudo ACCEPT_EULA=Y yum install -y msodbcsql17
 
-sleep 120
+#sleep 120
 
 # Install Oracle Instant Client RPMs
 echo "Installing Oracle Instant Client RPMs..."
