@@ -38,6 +38,15 @@ from api_service.db.aurora_postgresql_service import (
     insert_transaction as aurora_postgresql_insert_transaction
 )
 
+# Import MariaDB service functions
+from api_service.db.mariadb_service import (
+    initialize_table as mariadb_initialize_table,
+    load_sample_data as mariadb_load_sample_data,
+    select_transaction as mariadb_select_transaction,
+    insert_transaction as mariadb_insert_transaction
+)
+
+
 # Define FastAPI app
 app = FastAPI(
     title="University of Liverpool - Transaction Records API",
@@ -264,6 +273,58 @@ async def api_aurora_postgresql_insert_transaction(record: TransactionRecord):
     """
     try:
         result = await aurora_postgresql_insert_transaction(record.dict())
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# -------------------------
+# MariaDB Endpoints
+# -------------------------
+
+@app.get("/mariadb/initialize")
+async def api_mariadb_initialize_table():
+    """
+    Initialize the transaction_records table in MariaDB.
+    """
+    try:
+        result = await mariadb_initialize_table()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/mariadb/load-sample-data")
+async def api_mariadb_load_sample_data():
+    """
+    Insert 100 randomly generated sample records into the MariaDB table.
+    """
+    try:
+        result = await mariadb_load_sample_data()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/mariadb/select-random")
+async def api_mariadb_select_random_transaction():
+    """
+    Retrieve one random transaction record from the MariaDB table.
+    """
+    try:
+        result = await mariadb_select_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/mariadb/insert")
+async def api_mariadb_insert_transaction(record: TransactionRecord):
+    """
+    Insert a new transaction record into MariaDB.
+    transaction_id is generated automatically.
+    """
+    try:
+        result = await mariadb_insert_transaction(record.dict())
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
