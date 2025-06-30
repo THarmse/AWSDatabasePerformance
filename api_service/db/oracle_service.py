@@ -85,7 +85,7 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
 
         record = {
             "user_id": f"user-{random.randint(100, 999)}",
-            "transaction_ts": (datetime.utcnow() - timedelta(days=random.randint(0, 30))).strftime('%Y-%m-%d %H:%M:%S'),
+            "transaction_ts": datetime.utcnow() - timedelta(days=random.randint(0, 30)),
             "product_id": f"product-{random.randint(1, 50)}",
             "quantity": quantity,
             "unit_price": unit_price,
