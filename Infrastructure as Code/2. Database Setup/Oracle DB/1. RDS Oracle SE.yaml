@@ -42,7 +42,7 @@ Parameters:
 
   DBName:
     Type: String
-    Default: performance_db
+    Default: ORCL
     Description: Initial database name
 
   DBUsername:
