@@ -16,10 +16,6 @@ sudo yum install -y unixODBC unixODBC-devel
 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo curl -o /etc/yum.repos.d/msprod.repo https://packages.microsoft.com/config/rhel/8/prod.repo
 
-# Clean and refresh metadata
-sudo yum clean all
-sudo yum makecache
-
 # Install Microsoft ODBC Driver 17 for SQL Server
 sudo ACCEPT_EULA=Y yum install -y msodbcsql17
 
