@@ -4,10 +4,12 @@
 
 import uuid
 import random
+import json
+import pyodbc
 from typing import Optional
 from fastapi import Body
 from datetime import datetime, timedelta
-from api_service.db.base import get_mssqlserver_connection
+from api_service.db.base import get_mssqlserver_connection, get_db_credentials
 
 # Parameter Store name for SQL Server credentials
 PARAM_NAME = "/Liverpool/RDS/MSSQLServer/Credentials"
@@ -42,14 +44,36 @@ async def get_connection():
 
 async def initialize_table():
     """
-    Creates the transaction_records table in SQL Server if it does not exist.
+    Creates the database if it does not exist, then creates the transaction_records table in SQL Server if it does not exist.
     """
+    # Load database name from Parameter Store
+    creds_json = get_db_credentials(PARAM_NAME)
+    creds = json.loads(creds_json)
+    database_name = creds['database']
+
+    # Connect to 'master' to create the database if it does not exist
+    master_conn_str = (
+        f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+        f"SERVER={creds['host']},{creds.get('port', 1433)};"
+        f"DATABASE=master;"
+        f"UID={creds['username']};"
+        f"PWD={creds['password']}"
+    )
+    master_conn = pyodbc.connect(master_conn_str)
+    try:
+        with master_conn.cursor() as cursor:
+            cursor.execute(f"IF DB_ID(N'{database_name}') IS NULL CREATE DATABASE [{database_name}]")
+        master_conn.commit()
+    finally:
+        master_conn.close()
+
+    # Now connect to the target database to create the table if needed
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute(CREATE_TABLE_SQL)
         conn.commit()
-        return {"message": f"Table '{TABLE_NAME}' initialized successfully in SQL Server."}
+        return {"message": f"Database '{database_name}' and table '{TABLE_NAME}' initialized successfully in SQL Server."}
     finally:
         conn.close()
 
