@@ -125,6 +125,7 @@ Resources:
                   - logs:*
                   - ec2:Describe*
                   - ssm:GetParameter
+-                 - dynamodb:*
                 Resource: "*"
       Tags:
         - Key: Name
