@@ -37,4 +37,4 @@ uvicorn api_service.main:app --host 127.0.0.1 --port 8000
 
 CHECK if service running
 
-ps aux | grep uvicorn
+ps aux | grep uvicorn 
