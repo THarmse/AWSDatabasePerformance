@@ -99,12 +99,27 @@ def get_oracle_connection(param_name: str):
         dsn=dsn
     )
 
-
 def get_mariadb_connection(param_name: str):
     """
     MariaDB connection using PyMySQL.
     """
     return get_mysql_connection(param_name)
+
+def get_ibm_db2_connection(param_name: str):
+    """
+    IBM DB2 connection using ibm_db_dbi.
+    """
+    import ibm_db_dbi
+    creds = json.loads(get_db_credentials(param_name))
+    conn_str = (
+        f"DATABASE={creds['database']};"
+        f"HOSTNAME={creds['host']};"
+        f"PORT={int(creds.get('port', 50000))};"
+        f"PROTOCOL=TCPIP;"
+        f"UID={creds['username']};"
+        f"PWD={creds['password']};"
+    )
+    return ibm_db_dbi.connect(conn_str, "", "")
 
 
 def get_dynamodb_resource():

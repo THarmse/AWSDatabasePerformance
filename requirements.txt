@@ -5,3 +5,5 @@ boto3
 psycopg2-binary
 pyodbc
 cx_Oracle
+ibm_db
+
