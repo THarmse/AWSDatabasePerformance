@@ -12,10 +12,15 @@ sudo yum install -y gcc gcc-c++ make python3-devel
 # Install unixODBC (required for pyodbc)
 sudo yum install -y unixODBC unixODBC-devel
 
+# Add Microsoft repo GPG key and repo for ODBC Driver 17
+sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+sudo curl -o /etc/yum.repos.d/msprod.repo https://packages.microsoft.com/config/rhel/8/prod.repo
+
+# Clean and refresh metadata
+sudo yum clean all
+sudo yum makecache
+
 # Install Microsoft ODBC Driver 17 for SQL Server
-sudo su
-curl https://packages.microsoft.com/config/rhel/8/prod.repo > /etc/yum.repos.d/msprod.repo
-exit
 sudo yum install -y msodbcsql17
 
 # Install Oracle Instant Client
