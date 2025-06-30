@@ -93,6 +93,7 @@ Resources:
     Properties:
       Engine: aurora-postgresql
       EngineVersion: 16.2
+      Port: 5432
       DBClusterIdentifier: !Ref DBClusterIdentifier
       DatabaseName: !Ref DBName
       MasterUsername: !Ref DBUsername
