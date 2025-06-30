@@ -3,8 +3,8 @@ set -ex
 echo "Running BeforeInstall script"
 
 # Clean old app dir
-rm -rf /home/ec2-user/app
-mkdir -p /home/ec2-user/app
+# rm -rf /home/ec2-user/app
+# mkdir -p /home/ec2-user/app
 
 # Core build tools for Python packages
 sudo yum install -y gcc gcc-c++ make python3-devel
