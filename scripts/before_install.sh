@@ -3,7 +3,7 @@ set -ex
 echo "Running BeforeInstall script"
 
 # Clean old app dir
-#rm -rf /home/ec2-user/app
+rm -rf /home/ec2-user/app
 mkdir -p /home/ec2-user/app
 
 # Core build tools for Python packages
@@ -20,10 +20,6 @@ sudo curl -o /etc/yum.repos.d/msprod.repo https://packages.microsoft.com/config/
 sudo ACCEPT_EULA=Y yum install -y msodbcsql17
 
 #sleep 120
-
-
-
-
 
 # Clean and refresh metadata
 sudo yum clean all
