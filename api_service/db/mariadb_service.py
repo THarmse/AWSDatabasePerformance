@@ -52,11 +52,11 @@ async def initialize_table():
 
 async def load_sample_data():
     """
-    Inserts 100 random sample records into the transaction_records table.
+    Inserts 1 random sample records into the transaction_records table.
     """
-    for _ in range(100):
+    for _ in range(1):
         await insert_transaction(record=None)
-    return {"message": "100 sample records inserted successfully into MariaDB."}
+    return {"message": "1 sample records inserted successfully into MariaDB."}
 
 async def insert_transaction(record: Optional[dict] = Body(None)):
     """

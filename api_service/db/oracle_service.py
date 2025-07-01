@@ -62,11 +62,11 @@ async def initialize_table():
 
 async def load_sample_data():
     """
-    Calls insert_transaction() 100 times to insert 100 random records.
+    Calls insert_transaction() to insert 1 random records.
     """
-    for _ in range(100):
+    for _ in range(1):
         await insert_transaction(record=None)
-    return {"message": "100 sample records inserted successfully into Oracle."}
+    return {"message": "1 sample records inserted successfully into Oracle."}
 
 async def insert_transaction(record: Optional[dict] = Body(None)):
     """
