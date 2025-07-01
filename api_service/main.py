@@ -11,7 +11,9 @@ from api_service.db.mysql_service import (
     initialize_table as mysql_initialize_table,
     load_sample_data as mysql_load_sample_data,
     select_transaction as mysql_select_transaction,
-    insert_transaction as mysql_insert_transaction
+    insert_transaction as mysql_insert_transaction,
+    update_random_transaction_status as mysql_update_random_transaction_status,
+    delete_random_transaction as mysql_delete_random_transaction
 )
 
 # Import Aurora MySQL service functions
@@ -140,6 +142,31 @@ async def api_mysql_insert_transaction(record: TransactionRecord):
     """
     try:
         result = await mysql_insert_transaction(record.dict())
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/mysql/update-random-status")
+async def api_mysql_update_random_status():
+    """
+    Update the 'status' field of one random transaction record in MySQL.
+    No parameters required.
+    """
+    try:
+        result = await mysql_update_random_transaction_status()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/mysql/delete-random")
+async def api_mysql_delete_random_transaction():
+    """
+    Delete one random transaction record from the MySQL table.
+    No parameters required.
+    """
+    try:
+        result = await mysql_delete_random_transaction()
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
