@@ -54,3 +54,29 @@ uvicorn api_service.main:app --host 127.0.0.1 --port 8000
 CHECK if service running
 
 ps aux | grep uvicorn 
+
+
+
+NOTES:
+DynamoDB does not support float and using Decimal instead for unit_price and total_amount
+
+For IBM
+https://cloud.ibm.com/registration?target=/db2-wh&uucid=0d24d74b852ef96a&utm_content=DABWW
+Select the AWS option, choose the starting configuration, then apply the promo code DB2W1K to receive USD 1,000 of free credits to use toward the service.
+
+Apache JMeter - EC2
+1. Launch EC2 instance and use existing networking components
+	a Name: Apache JMeter
+	a Instane Type: m6i.xlarge
+	a Create a new EC2 Key Pair 
+	a VPC: liverpool-vpc
+    a Subnet: liverpool-public-nat-AZ-a
+1. a Auto-Assign public IP: Enable
+1. Security Group: SecurigtyGroup-SGBastion-xxxxx
+1. Storage: 100 GB gp3
+
+Apache JMeter - Setup
+- Ensure Java 8+ is installed: https://javadl.oracle.com/webapps/download/AutoDL?xd_co_f=YzVhYzVlYjUtOTQ5Ni00NzI5LWI3ODAtZmRiYzJkY2Y2MThl&BundleId=252044_8a1589aa0fe24566b4337beee47c2d29
+- Download https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.zip
+- Extact the .zip file
+- navigate to the bin folder and run jmeter.bat
