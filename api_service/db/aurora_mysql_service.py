@@ -126,3 +126,62 @@ async def select_transaction():
             return {"message": "No records found in the Aurora MySQL table."}
     finally:
         conn.close()
+
+async def update_random_transaction_status():
+    """
+    Updates the 'status' field of one random transaction record in Aurora MySQL.
+    Selects a new random status from predefined options.
+    """
+    statuses = ["Completed", "Pending", "Failed", "Refunded"]
+    new_status = random.choice(statuses)
+
+    conn = await get_connection()
+    try:
+        with conn.cursor() as cursor:
+            # Retrieve a random transaction_id
+            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RAND() LIMIT 1")
+            result = cursor.fetchone()
+
+            if not result:
+                return {"message": "No records found to update in the Aurora MySQL table."}
+
+            transaction_id = result["transaction_id"]
+
+            # Perform the update
+            update_sql = f"""
+            UPDATE {TABLE_NAME}
+            SET status = %s
+            WHERE transaction_id = %s
+            """
+            cursor.execute(update_sql, (new_status, transaction_id))
+
+        conn.commit()
+        return {"message": f"Updated status to '{new_status}' for transaction_id {transaction_id} in Aurora MySQL."}
+    finally:
+        conn.close()
+
+async def delete_random_transaction():
+    """
+    Deletes one random transaction record from the Aurora MySQL table.
+    No parameters required.
+    """
+    conn = await get_connection()
+    try:
+        with conn.cursor() as cursor:
+            # Retrieve a random transaction_id
+            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RAND() LIMIT 1")
+            result = cursor.fetchone()
+
+            if not result:
+                return {"message": "No records found to delete in the Aurora MySQL table."}
+
+            transaction_id = result["transaction_id"]
+
+            # Perform the deletion
+            delete_sql = f"DELETE FROM {TABLE_NAME} WHERE transaction_id = %s"
+            cursor.execute(delete_sql, (transaction_id,))
+
+        conn.commit()
+        return {"message": f"Deleted transaction with ID {transaction_id} from Aurora MySQL."}
+    finally:
+        conn.close()

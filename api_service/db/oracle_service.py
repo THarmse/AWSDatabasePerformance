@@ -156,3 +156,72 @@ async def select_transaction():
                 return {"message": "No records found in the Oracle table."}
     finally:
         conn.close()
+
+async def update_random_transaction_status():
+    """
+    Updates the 'status' field of one random transaction record in Oracle.
+    Selects a new random status from predefined options.
+    """
+    statuses = ["Completed", "Pending", "Failed", "Refunded"]
+    new_status = random.choice(statuses)
+
+    conn = await get_connection()
+    try:
+        with conn.cursor() as cursor:
+            # Retrieve a random transaction_id
+            select_sql = f"""
+            SELECT transaction_id FROM (
+                SELECT transaction_id FROM {TABLE_NAME} ORDER BY dbms_random.value
+            ) WHERE ROWNUM = 1
+            """
+            cursor.execute(select_sql)
+            result = cursor.fetchone()
+
+            if not result:
+                return {"message": "No records found to update in the Oracle table."}
+
+            transaction_id = result[0]
+
+            # Perform the update
+            update_sql = f"""
+            UPDATE {TABLE_NAME}
+            SET status = :1
+            WHERE transaction_id = :2
+            """
+            cursor.execute(update_sql, (new_status, transaction_id))
+
+        conn.commit()
+        return {"message": f"Updated status to '{new_status}' for transaction_id {transaction_id} in Oracle."}
+    finally:
+        conn.close()
+
+async def delete_random_transaction():
+    """
+    Deletes one random transaction record from the Oracle table.
+    No parameters required.
+    """
+    conn = await get_connection()
+    try:
+        with conn.cursor() as cursor:
+            # Retrieve a random transaction_id
+            select_sql = f"""
+            SELECT transaction_id FROM (
+                SELECT transaction_id FROM {TABLE_NAME} ORDER BY dbms_random.value
+            ) WHERE ROWNUM = 1
+            """
+            cursor.execute(select_sql)
+            result = cursor.fetchone()
+
+            if not result:
+                return {"message": "No records found to delete in the Oracle table."}
+
+            transaction_id = result[0]
+
+            # Perform the deletion
+            delete_sql = f"DELETE FROM {TABLE_NAME} WHERE transaction_id = :1"
+            cursor.execute(delete_sql, (transaction_id,))
+
+        conn.commit()
+        return {"message": f"Deleted transaction with ID {transaction_id} from Oracle."}
+    finally:
+        conn.close()

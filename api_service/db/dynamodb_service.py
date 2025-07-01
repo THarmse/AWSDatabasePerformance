@@ -113,3 +113,53 @@ async def select_transaction():
 
     selected = random.choice(items)
     return {"record": selected}
+
+async def update_random_transaction_status():
+    """
+    Updates the 'status' field of one random transaction record in DynamoDB.
+    Selects a new random status from predefined options.
+    """
+    statuses = ["Completed", "Pending", "Failed", "Refunded"]
+    new_status = random.choice(statuses)
+
+    table = await get_table()
+    # Fetch some items to choose one randomly
+    scan_response = table.scan(Limit=10)
+    items = scan_response.get("Items", [])
+
+    if not items:
+        return {"message": "No records found to update in the DynamoDB table."}
+
+    selected = random.choice(items)
+    transaction_id = selected["transaction_id"]
+
+    # Perform the update
+    table.update_item(
+        Key={"transaction_id": transaction_id},
+        UpdateExpression="SET #s = :status",
+        ExpressionAttributeNames={"#s": "status"},
+        ExpressionAttributeValues={":status": new_status}
+    )
+
+    return {"message": f"Updated status to '{new_status}' for transaction_id {transaction_id} in DynamoDB."}
+
+async def delete_random_transaction():
+    """
+    Deletes one random transaction record from the DynamoDB table.
+    No parameters required.
+    """
+    table = await get_table()
+    # Fetch some items to choose one randomly
+    scan_response = table.scan(Limit=10)
+    items = scan_response.get("Items", [])
+
+    if not items:
+        return {"message": "No records found to delete in the DynamoDB table."}
+
+    selected = random.choice(items)
+    transaction_id = selected["transaction_id"]
+
+    # Perform the deletion
+    table.delete_item(Key={"transaction_id": transaction_id})
+
+    return {"message": f"Deleted transaction with ID {transaction_id} from DynamoDB."}

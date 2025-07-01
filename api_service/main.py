@@ -21,56 +21,77 @@ from api_service.db.aurora_mysql_service import (
     initialize_table as aurora_initialize_table,
     load_sample_data as aurora_load_sample_data,
     select_transaction as aurora_select_transaction,
-    insert_transaction as aurora_insert_transaction
+    insert_transaction as aurora_insert_transaction,
+    update_random_transaction_status as aurora_update_random_transaction_status,
+    delete_random_transaction as aurora_delete_random_transaction
 )
+
 
 # Import PostgreSQL service functions
 from api_service.db.postgresql_service import (
     initialize_table as postgresql_initialize_table,
     load_sample_data as postgresql_load_sample_data,
     select_transaction as postgresql_select_transaction,
-    insert_transaction as postgresql_insert_transaction
+    insert_transaction as postgresql_insert_transaction,
+    update_random_transaction_status as postgresql_update_random_transaction_status,
+    delete_random_transaction as postgresql_delete_random_transaction
 )
+
 
 # Import Aurora PostgreSQL service functions
 from api_service.db.aurora_postgresql_service import (
     initialize_table as aurora_postgresql_initialize_table,
     load_sample_data as aurora_postgresql_load_sample_data,
     select_transaction as aurora_postgresql_select_transaction,
-    insert_transaction as aurora_postgresql_insert_transaction
+    insert_transaction as aurora_postgresql_insert_transaction,
+    update_random_transaction_status as aurora_postgresql_update_random_transaction_status,
+    delete_random_transaction as aurora_postgresql_delete_random_transaction
 )
+
 
 # Import MariaDB service functions
 from api_service.db.mariadb_service import (
     initialize_table as mariadb_initialize_table,
     load_sample_data as mariadb_load_sample_data,
     select_transaction as mariadb_select_transaction,
-    insert_transaction as mariadb_insert_transaction
+    insert_transaction as mariadb_insert_transaction,
+    update_random_transaction_status as mariadb_update_random_transaction_status,
+    delete_random_transaction as mariadb_delete_random_transaction
 )
+
 
 # Import Microsoft SQL Server service functions
 from api_service.db.mssql_service import (
     initialize_table as mssql_initialize_table,
     load_sample_data as mssql_load_sample_data,
     select_transaction as mssql_select_transaction,
-    insert_transaction as mssql_insert_transaction
+    insert_transaction as mssql_insert_transaction,
+    update_random_transaction_status as mssql_update_random_transaction_status,
+    delete_random_transaction as mssql_delete_random_transaction
 )
+
 
 # Import Oracle service functions
 from api_service.db.oracle_service import (
     initialize_table as oracle_initialize_table,
     load_sample_data as oracle_load_sample_data,
     select_transaction as oracle_select_transaction,
-    insert_transaction as oracle_insert_transaction
+    insert_transaction as oracle_insert_transaction,
+    update_random_transaction_status as oracle_update_random_transaction_status,
+    delete_random_transaction as oracle_delete_random_transaction
 )
+
 
 # Import DynamoDB service functions
 from api_service.db.dynamodb_service import (
     initialize_table as dynamodb_initialize_table,
     load_sample_data as dynamodb_load_sample_data,
     select_transaction as dynamodb_select_transaction,
-    insert_transaction as dynamodb_insert_transaction
+    insert_transaction as dynamodb_insert_transaction,
+    update_random_transaction_status as dynamodb_update_random_transaction_status,
+    delete_random_transaction as dynamodb_delete_random_transaction
 )
+
 
 
 
@@ -224,6 +245,31 @@ async def api_aurora_insert_transaction(record: TransactionRecord):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/AuroraMySQL/update-random-status")
+async def api_aurora_update_random_status():
+    """
+    Update the 'status' field of one random transaction record in Aurora MySQL.
+    No parameters required.
+    """
+    try:
+        result = await aurora_update_random_transaction_status()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/AuroraMySQL/delete-random")
+async def api_aurora_delete_random_transaction():
+    """
+    Delete one random transaction record from the Aurora MySQL table.
+    No parameters required.
+    """
+    try:
+        result = await aurora_delete_random_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # -------------------------
 # PostgreSQL Endpoints
@@ -273,6 +319,31 @@ async def api_postgresql_insert_transaction(record: TransactionRecord):
     """
     try:
         result = await postgresql_insert_transaction(record.dict())
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/postgresql/update-random-status")
+async def api_postgresql_update_random_status():
+    """
+    Update the 'status' field of one random transaction record in PostgreSQL.
+    No parameters required.
+    """
+    try:
+        result = await postgresql_update_random_transaction_status()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/postgresql/delete-random")
+async def api_postgresql_delete_random_transaction():
+    """
+    Delete one random transaction record from the PostgreSQL table.
+    No parameters required.
+    """
+    try:
+        result = await postgresql_delete_random_transaction()
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -330,6 +401,32 @@ async def api_aurora_postgresql_insert_transaction(record: TransactionRecord):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/AuroraPostgreSQL/update-random-status")
+async def api_aurora_postgresql_update_random_status():
+    """
+    Update the 'status' field of one random transaction record in Aurora PostgreSQL.
+    No parameters required.
+    """
+    try:
+        result = await aurora_postgresql_update_random_transaction_status()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/AuroraPostgreSQL/delete-random")
+async def api_aurora_postgresql_delete_random_transaction():
+    """
+    Delete one random transaction record from the Aurora PostgreSQL table.
+    No parameters required.
+    """
+    try:
+        result = await aurora_postgresql_delete_random_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # -------------------------
 # MariaDB Endpoints
 # -------------------------
@@ -381,6 +478,32 @@ async def api_mariadb_insert_transaction(record: TransactionRecord):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/mariadb/update-random-status")
+async def api_mariadb_update_random_status():
+    """
+    Update the 'status' field of one random transaction record in MariaDB.
+    No parameters required.
+    """
+    try:
+        result = await mariadb_update_random_transaction_status()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/mariadb/delete-random")
+async def api_mariadb_delete_random_transaction():
+    """
+    Delete one random transaction record from the MariaDB table.
+    No parameters required.
+    """
+    try:
+        result = await mariadb_delete_random_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # -------------------------
 # Microsoft SQL Server Endpoints
@@ -434,6 +557,32 @@ async def api_mssql_insert_transaction(record: TransactionRecord):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/mssql/update-random-status")
+async def api_mssql_update_random_status():
+    """
+    Update the 'status' field of one random transaction record in Microsoft SQL Server.
+    No parameters required.
+    """
+    try:
+        result = await mssql_update_random_transaction_status()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/mssql/delete-random")
+async def api_mssql_delete_random_transaction():
+    """
+    Delete one random transaction record from the Microsoft SQL Server table.
+    No parameters required.
+    """
+    try:
+        result = await mssql_delete_random_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # -------------------------
 # Oracle Endpoints
 # -------------------------
@@ -486,6 +635,32 @@ async def api_oracle_insert_transaction(record: TransactionRecord):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/oracle/update-random-status")
+async def api_oracle_update_random_status():
+    """
+    Update the 'status' field of one random transaction record in Oracle.
+    No parameters required.
+    """
+    try:
+        result = await oracle_update_random_transaction_status()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/oracle/delete-random")
+async def api_oracle_delete_random_transaction():
+    """
+    Delete one random transaction record from the Oracle table.
+    No parameters required.
+    """
+    try:
+        result = await oracle_delete_random_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # -------------------------
 # DynamoDB Endpoints
 # -------------------------
@@ -534,6 +709,31 @@ async def api_dynamodb_insert_transaction(record: TransactionRecord):
     """
     try:
         result = await dynamodb_insert_transaction(record.dict())
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/dynamodb/update-random-status")
+async def api_dynamodb_update_random_status():
+    """
+    Update the 'status' field of one random transaction record in DynamoDB.
+    No parameters required.
+    """
+    try:
+        result = await dynamodb_update_random_transaction_status()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/dynamodb/delete-random")
+async def api_dynamodb_delete_random_transaction():
+    """
+    Delete one random transaction record from the DynamoDB table.
+    No parameters required.
+    """
+    try:
+        result = await dynamodb_delete_random_transaction()
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

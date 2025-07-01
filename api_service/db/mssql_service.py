@@ -168,3 +168,62 @@ async def select_transaction():
                 return {"message": "No records found in the SQL Server table."}
     finally:
         conn.close()
+
+async def update_random_transaction_status():
+    """
+    Updates the 'status' field of one random transaction record in SQL Server.
+    Selects a new random status from predefined options.
+    """
+    statuses = ["Completed", "Pending", "Failed", "Refunded"]
+    new_status = random.choice(statuses)
+
+    conn = await get_connection()
+    try:
+        with conn.cursor() as cursor:
+            # Retrieve a random transaction_id
+            cursor.execute(f"SELECT TOP 1 transaction_id FROM {TABLE_NAME} ORDER BY NEWID()")
+            result = cursor.fetchone()
+
+            if not result:
+                return {"message": "No records found to update in the SQL Server table."}
+
+            transaction_id = result[0]
+
+            # Perform the update
+            update_sql = f"""
+            UPDATE {TABLE_NAME}
+            SET status = ?
+            WHERE transaction_id = ?
+            """
+            cursor.execute(update_sql, (new_status, transaction_id))
+
+        conn.commit()
+        return {"message": f"Updated status to '{new_status}' for transaction_id {transaction_id} in SQL Server."}
+    finally:
+        conn.close()
+
+async def delete_random_transaction():
+    """
+    Deletes one random transaction record from the SQL Server table.
+    No parameters required.
+    """
+    conn = await get_connection()
+    try:
+        with conn.cursor() as cursor:
+            # Retrieve a random transaction_id
+            cursor.execute(f"SELECT TOP 1 transaction_id FROM {TABLE_NAME} ORDER BY NEWID()")
+            result = cursor.fetchone()
+
+            if not result:
+                return {"message": "No records found to delete in the SQL Server table."}
+
+            transaction_id = result[0]
+
+            # Perform the deletion
+            delete_sql = f"DELETE FROM {TABLE_NAME} WHERE transaction_id = ?"
+            cursor.execute(delete_sql, (transaction_id,))
+
+        conn.commit()
+        return {"message": f"Deleted transaction with ID {transaction_id} from SQL Server."}
+    finally:
+        conn.close()
