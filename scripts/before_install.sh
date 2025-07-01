@@ -21,10 +21,7 @@ sudo ACCEPT_EULA=Y yum install -y msodbcsql17
 
 #sleep 120
 
-# Install Oracle Instant Client RPMs
-echo "Installing Oracle Instant Client RPMs..."
-sudo yum install -y /home/ec2-user/app/oracle_rpms/oracle-instantclient-basic-23.8.0.25.04-1.el8.x86_64.rpm
-sudo yum install -y /home/ec2-user/app/oracle_rpms/oracle-instantclient-devel-23.8.0.25.04-1.el8.x86_64.rpm
+
 
 
 
