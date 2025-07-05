@@ -7,6 +7,5 @@ pyodbc
 pymssql
 cx_Oracle
 ibm-db
-ibm-db-dbi
 ibm-db-sa
 SQLAlchemy
