@@ -44,7 +44,7 @@ sudo systemctl start codedeploy-agent
  
 
   
-
+   
 
 
 1. source /home/ec2-user/app/venv/bin/activate
