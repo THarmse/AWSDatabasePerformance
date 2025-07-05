@@ -17,26 +17,6 @@ PARAM_NAME = "/Liverpool/RDS/IBMDB2/Credentials"
 # Table name
 TABLE_NAME = "transaction_records"
 
-# SQL to create the table if it does not exist
-CREATE_TABLE_SQL = f"""
-BEGIN
-  DECLARE CONTINUE HANDLER FOR SQLSTATE '42710' BEGIN END;
-  EXECUTE IMMEDIATE '
-    CREATE TABLE {TABLE_NAME} (
-      transaction_id VARCHAR(36) PRIMARY KEY,
-      user_id VARCHAR(36),
-      transaction_ts TIMESTAMP,
-      product_id VARCHAR(36),
-      quantity INTEGER,
-      unit_price DECIMAL(10,2),
-      total_amount DECIMAL(12,2),
-      currency VARCHAR(3),
-      payment_method VARCHAR(20),
-      status VARCHAR(20)
-    )';
-END
-"""
-
 async def get_connection():
     """
     Returns a new ibm_db_dbi connection using the base utility function.
@@ -51,17 +31,37 @@ async def initialize_table():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute(CREATE_TABLE_SQL)
+            create_table_sql = f"""
+            CREATE TABLE {TABLE_NAME} (
+                transaction_id VARCHAR(36) PRIMARY KEY,
+                user_id VARCHAR(36),
+                transaction_ts TIMESTAMP,
+                product_id VARCHAR(36),
+                quantity INTEGER,
+                unit_price DECIMAL(10,2),
+                total_amount DECIMAL(12,2),
+                currency VARCHAR(3),
+                payment_method VARCHAR(20),
+                status VARCHAR(20)
+            )
+            """
+            try:
+                cursor.execute(create_table_sql)
+            except Exception as e:
+                # Ignore "already exists" error
+                if "SQLCODE=-601" in str(e) or "already exists" in str(e):
+                    pass
+                else:
+                    raise
         conn.commit()
         return {"message": f"Table '{TABLE_NAME}' initialized successfully in IBM Db2."}
     finally:
         conn.close()
 
 
-
 async def load_sample_data():
     """
-    Calls insert_transaction() to insert 1 random record.
+    Inserts one random sample record into the transaction_records table.
     """
     await insert_transaction(record=None)
     return {"message": "1 sample record inserted successfully into IBM Db2."}
@@ -70,7 +70,7 @@ async def load_sample_data():
 async def insert_transaction(record: Optional[dict] = Body(None)):
     """
     Inserts a new transaction record into the table.
-    If no record is provided, generates a new random sample record.
+    Generates a random sample record if none is provided.
     """
     if record is None:
         currencies = ["USD", "EUR", "GBP"]
@@ -93,7 +93,6 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
             "status": random.choice(statuses)
         }
 
-    # Always assign a new transaction_id
     record["transaction_id"] = str(uuid.uuid4())
 
     insert_sql = f"""
@@ -161,7 +160,6 @@ async def update_random_transaction_status():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            # Retrieve a random transaction_id
             cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RAND() FETCH FIRST 1 ROW ONLY")
             result = cursor.fetchone()
 
@@ -170,7 +168,6 @@ async def update_random_transaction_status():
 
             transaction_id = result[0]
 
-            # Perform the update
             update_sql = f"""
             UPDATE {TABLE_NAME}
             SET status = ?
@@ -191,7 +188,6 @@ async def delete_random_transaction():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            # Retrieve a random transaction_id
             cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RAND() FETCH FIRST 1 ROW ONLY")
             result = cursor.fetchone()
 
@@ -200,7 +196,6 @@ async def delete_random_transaction():
 
             transaction_id = result[0]
 
-            # Perform the deletion
             delete_sql = f"DELETE FROM {TABLE_NAME} WHERE transaction_id = ?"
             cursor.execute(delete_sql, (transaction_id,))
 
