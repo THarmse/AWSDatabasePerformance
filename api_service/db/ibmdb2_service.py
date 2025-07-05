@@ -29,12 +29,9 @@ async def get_connection(autocommit: bool = True):
 
 async def initialize_table():
     """
-    Ensures the transaction_records table exists in IBM Db2.
-    Checks the catalog for existence before creating.
-    Uses autocommit=True to ensure DDL runs immediately.
-    Returns any DB2 error message clearly.
+    Ensures both the schema and the transaction_records table exist in IBM Db2.
+    Creates schema and grants privileges if needed. 
     """
-    # For DDL in Db2, autocommit=True ensures CREATE TABLE executes immediately
     conn = await get_connection(autocommit=True)
     try:
         with conn.cursor() as cursor:
@@ -42,22 +39,49 @@ async def initialize_table():
             cursor.execute("SELECT CURRENT SCHEMA FROM SYSIBM.SYSDUMMY1")
             schema_result = cursor.fetchone()
             schema = schema_result[0].strip().upper()
-
             print(f"[INFO] Current schema: {schema}")
 
-            # Check if the table exists in the current schema
-            exists_query = """
-            SELECT 1 FROM SYSCAT.TABLES 
-            WHERE TABNAME = ? AND TABSCHEMA = ?
-            """
-            cursor.execute(exists_query, (TABLE_NAME.upper(), schema))
-            result = cursor.fetchone()
+            #
+            # Check if the schema exists
+            #
+            print(f"[INFO] Checking if schema '{schema}' exists...")
+            cursor.execute(
+                "SELECT 1 FROM SYSCAT.SCHEMATA WHERE SCHEMANAME = ?",
+                (schema,)
+            )
+            if not cursor.fetchone():
+                print(f"[INFO] Schema '{schema}' does not exist. Creating schema.")
+                cursor.execute(f"CREATE SCHEMA {schema}")
+                print(f"[INFO] Schema '{schema}' created.")
 
-            if result:
-                print(f"[INFO] Table {TABLE_NAME} already exists in schema {schema}.")
+            #
+            # Check if user has CREATEIN privilege on schema
+            #
+            print(f"[INFO] Checking CREATEIN privilege for '{schema}' on schema '{schema}'...")
+            cursor.execute("""
+                SELECT 1 FROM SYSCAT.SCHEMAAUTH
+                WHERE SCHEMANAME = ? AND GRANTEE = ? AND PRIVILEGE = 'C'
+            """, (schema, schema))
+            if not cursor.fetchone():
+                print(f"[INFO] Granting CREATEIN on schema '{schema}' to '{schema}'.")
+                cursor.execute(f"GRANT CREATEIN ON SCHEMA {schema} TO USER {schema}")
+                print(f"[INFO] CREATEIN granted.")
+
+            #
+            #  Check if the table exists
+            #
+            print(f"[INFO] Checking if table '{TABLE_NAME}' exists in schema '{schema}'...")
+            cursor.execute("""
+                SELECT 1 FROM SYSCAT.TABLES
+                WHERE TABNAME = ? AND TABSCHEMA = ?
+            """, (TABLE_NAME.upper(), schema))
+            if cursor.fetchone():
+                print(f"[INFO] Table '{TABLE_NAME}' already exists.")
                 return {"message": f"Table '{TABLE_NAME}' already exists in IBM Db2."}
 
-            # Table does not exist - create it
+            #
+            #  Create the table
+            #
             create_table_sql = f"""
             CREATE TABLE {schema}.{TABLE_NAME} (
                 transaction_id VARCHAR(36) PRIMARY KEY,
@@ -74,7 +98,7 @@ async def initialize_table():
             """
             print(f"[INFO] Executing CREATE TABLE:\n{create_table_sql}")
             cursor.execute(create_table_sql)
-            print("[INFO] CREATE TABLE executed successfully.")
+            print(f"[INFO] Table '{TABLE_NAME}' created successfully.")
 
         return {"message": f"Table '{TABLE_NAME}' created successfully in IBM Db2."}
 
@@ -88,7 +112,6 @@ async def initialize_table():
             print("[INFO] Connection closed.")
         except Exception as close_error:
             print(f"[WARN] Exception during connection close: {close_error}")
-
 
 
 
