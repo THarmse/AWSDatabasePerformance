@@ -214,6 +214,9 @@ Resources:
               ./install auto
               systemctl enable codedeploy-agent
               systemctl start codedeploy-agent
+
+              # Install libxcrypt-compat for ibm_db
+              yum install -y libxcrypt-compat
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
