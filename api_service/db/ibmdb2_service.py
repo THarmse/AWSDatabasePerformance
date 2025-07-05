@@ -31,10 +31,11 @@ async def initialize_table():
     """
     Ensures the transaction_records table exists in IBM Db2.
     Checks the catalog for existence before creating.
-    Explicitly commits DDL to avoid autocommit issues with CREATE TABLE.
+    Uses autocommit=True to ensure DDL runs immediately.
     Returns any DB2 error message clearly.
     """
-    conn = await get_connection(autocommit=False)
+    # For DDL in Db2, autocommit=True ensures CREATE TABLE executes immediately
+    conn = await get_connection(autocommit=True)
     try:
         with conn.cursor() as cursor:
             # Determine current schema
@@ -42,7 +43,9 @@ async def initialize_table():
             schema_result = cursor.fetchone()
             schema = schema_result[0].strip().upper()
 
-            # Check if the table exists
+            print(f"[INFO] Current schema: {schema}")
+
+            # Check if the table exists in the current schema
             exists_query = """
             SELECT 1 FROM SYSCAT.TABLES 
             WHERE TABNAME = ? AND TABSCHEMA = ?
@@ -54,7 +57,7 @@ async def initialize_table():
                 print(f"[INFO] Table {TABLE_NAME} already exists in schema {schema}.")
                 return {"message": f"Table '{TABLE_NAME}' already exists in IBM Db2."}
 
-            # Table does not exist - attempt to create
+            # Table does not exist - create it
             create_table_sql = f"""
             CREATE TABLE {TABLE_NAME} (
                 transaction_id VARCHAR(36) PRIMARY KEY,
@@ -71,9 +74,7 @@ async def initialize_table():
             """
             print(f"[INFO] Executing CREATE TABLE:\n{create_table_sql}")
             cursor.execute(create_table_sql)
-            print("[INFO] CREATE TABLE executed successfully, committing transaction.")
-            conn.commit()
-            print("[INFO] Commit completed.")
+            print("[INFO] CREATE TABLE executed successfully.")
 
         return {"message": f"Table '{TABLE_NAME}' created successfully in IBM Db2."}
 
@@ -87,6 +88,7 @@ async def initialize_table():
             print("[INFO] Connection closed.")
         except Exception as close_error:
             print(f"[WARN] Exception during connection close: {close_error}")
+
 
 
 
