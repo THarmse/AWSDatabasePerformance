@@ -29,34 +29,28 @@ async def get_connection(autocommit: bool = True):
 
 async def initialize_table():
     """
-    Ensures the schema and the transaction_records table exist.
-    Creates the schema if it does not exist and has authority.
-    Creates the table if it does not exist.
-    Logs all steps for debugging.
+    Ensures the connected user's schema exists, and creates the transaction_records table if it does not already exist.
+    Designed to be idempotent and safe to run multiple times.
     """
     conn = await get_connection(autocommit=False)
     try:
         with conn.cursor() as cursor:
-            # Get the current schema (should match the connected user)
+            # Resolve current schema for this session
             cursor.execute("VALUES CURRENT SCHEMA")
             schema = cursor.fetchone()[0].strip().upper()
             print(f"[INFO] Current schema: {schema}")
 
-            # 1. Check if schema exists
+            # 1. Check if the schema exists
             cursor.execute("""
                 SELECT 1 FROM SYSCAT.SCHEMATA WHERE SCHEMANAME = ?
             """, (schema,))
             if not cursor.fetchone():
-                print(f"[INFO] Schema '{schema}' does not exist. Attempting to create it.")
-                try:
-                    cursor.execute(f"CREATE SCHEMA {schema}")
-                    conn.commit()
-                    print(f"[INFO] Schema '{schema}' created successfully.")
-                except Exception as e:
-                    print(f"[ERROR] Failed to create schema '{schema}': {e}")
-                    return {"error": f"Failed to create schema '{schema}'. Ensure the user has DBADM or SYSADM authority."}
+                print(f"[INFO] Schema '{schema}' does not exist. Creating it.")
+                cursor.execute(f"CREATE SCHEMA {schema}")
+                conn.commit()
+                print(f"[INFO] Schema '{schema}' created successfully.")
 
-            # 2. Check if table exists
+            # 2. Check if the table already exists
             cursor.execute("""
                 SELECT 1 FROM SYSCAT.TABLES
                 WHERE TABNAME = ? AND TABSCHEMA = ?
@@ -65,7 +59,7 @@ async def initialize_table():
                 print(f"[INFO] Table '{TABLE_NAME}' already exists in schema '{schema}'.")
                 return {"message": f"Table '{TABLE_NAME}' already exists in IBM Db2."}
 
-            # 3. Create table
+            # 3. Create the table
             create_table_sql = f"""
             CREATE TABLE {schema}.{TABLE_NAME} (
                 transaction_id VARCHAR(36) NOT NULL PRIMARY KEY,
@@ -97,7 +91,6 @@ async def initialize_table():
             print("[INFO] Connection closed.")
         except Exception as close_error:
             print(f"[WARN] Exception during connection close: {close_error}")
-
 
 
 async def load_sample_data():
@@ -136,19 +129,21 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
 
     record["transaction_id"] = str(uuid.uuid4())
 
-    insert_sql = f"""
-    INSERT INTO {TABLE_NAME} (
-        transaction_id, user_id, transaction_ts, product_id,
-        quantity, unit_price, total_amount, currency,
-        payment_method, status
-    ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-    )
-    """
-
-    conn = await get_connection()
+    conn = await get_connection(autocommit=False)
     try:
         with conn.cursor() as cursor:
+            cursor.execute("VALUES CURRENT SCHEMA")
+            schema = cursor.fetchone()[0].strip().upper()
+
+            insert_sql = f"""
+            INSERT INTO {schema}.{TABLE_NAME} (
+                transaction_id, user_id, transaction_ts, product_id,
+                quantity, unit_price, total_amount, currency,
+                payment_method, status
+            ) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            )
+            """
             cursor.execute(
                 insert_sql,
                 (
@@ -164,7 +159,15 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
                     record["status"]
                 )
             )
+            conn.commit()
+            print(f"[INFO] Inserted record ID: {record['transaction_id']}")
+
         return {"message": "Record inserted successfully into IBM Db2.", "transaction_id": record["transaction_id"]}
+
+    except Exception as e:
+        print(f"[ERROR] Exception during insert_transaction: {e}")
+        return {"error": str(e)}
+
     finally:
         conn.close()
 
@@ -173,11 +176,13 @@ async def select_transaction():
     """
     Retrieves a single transaction record from the table.
     """
-    select_sql = f"SELECT * FROM {TABLE_NAME} FETCH FIRST 1 ROW ONLY"
-
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
+            cursor.execute("VALUES CURRENT SCHEMA")
+            schema = cursor.fetchone()[0].strip().upper()
+
+            select_sql = f"SELECT * FROM {schema}.{TABLE_NAME} FETCH FIRST 1 ROW ONLY"
             cursor.execute(select_sql)
             columns = [column[0] for column in cursor.description]
             row = cursor.fetchone()
@@ -186,6 +191,11 @@ async def select_transaction():
                 return {"record": result}
             else:
                 return {"message": "No records found in the IBM Db2 table."}
+
+    except Exception as e:
+        print(f"[ERROR] Exception during select_transaction: {e}")
+        return {"error": str(e)}
+
     finally:
         conn.close()
 
@@ -197,10 +207,13 @@ async def update_random_transaction_status():
     statuses = ["Completed", "Pending", "Failed", "Refunded"]
     new_status = random.choice(statuses)
 
-    conn = await get_connection()
+    conn = await get_connection(autocommit=False)
     try:
         with conn.cursor() as cursor:
-            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} FETCH FIRST 1 ROW ONLY")
+            cursor.execute("VALUES CURRENT SCHEMA")
+            schema = cursor.fetchone()[0].strip().upper()
+
+            cursor.execute(f"SELECT transaction_id FROM {schema}.{TABLE_NAME} FETCH FIRST 1 ROW ONLY")
             result = cursor.fetchone()
 
             if not result or result[0] is None:
@@ -209,13 +222,20 @@ async def update_random_transaction_status():
             transaction_id = result[0]
 
             update_sql = f"""
-            UPDATE {TABLE_NAME}
+            UPDATE {schema}.{TABLE_NAME}
             SET status = ?
             WHERE transaction_id = ?
             """
             cursor.execute(update_sql, (new_status, transaction_id))
+            conn.commit()
+            print(f"[INFO] Updated transaction ID {transaction_id} to status '{new_status}'.")
 
         return {"message": f"Updated status to '{new_status}' for transaction_id {transaction_id} in IBM Db2."}
+
+    except Exception as e:
+        print(f"[ERROR] Exception during update_random_transaction_status: {e}")
+        return {"error": str(e)}
+
     finally:
         conn.close()
 
@@ -224,10 +244,13 @@ async def delete_random_transaction():
     """
     Deletes one transaction record from the IBM Db2 table.
     """
-    conn = await get_connection()
+    conn = await get_connection(autocommit=False)
     try:
         with conn.cursor() as cursor:
-            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} FETCH FIRST 1 ROW ONLY")
+            cursor.execute("VALUES CURRENT SCHEMA")
+            schema = cursor.fetchone()[0].strip().upper()
+
+            cursor.execute(f"SELECT transaction_id FROM {schema}.{TABLE_NAME} FETCH FIRST 1 ROW ONLY")
             result = cursor.fetchone()
 
             if not result or result[0] is None:
@@ -235,9 +258,16 @@ async def delete_random_transaction():
 
             transaction_id = result[0]
 
-            delete_sql = f"DELETE FROM {TABLE_NAME} WHERE transaction_id = ?"
+            delete_sql = f"DELETE FROM {schema}.{TABLE_NAME} WHERE transaction_id = ?"
             cursor.execute(delete_sql, (transaction_id,))
+            conn.commit()
+            print(f"[INFO] Deleted transaction ID: {transaction_id}")
 
         return {"message": f"Deleted transaction with ID {transaction_id} from IBM Db2."}
+
+    except Exception as e:
+        print(f"[ERROR] Exception during delete_random_transaction: {e}")
+        return {"error": str(e)}
+
     finally:
         conn.close()
