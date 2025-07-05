@@ -31,12 +31,12 @@ async def initialize_table():
     """
     Ensures both the schema and the transaction_records table exist in IBM Db2.
     Creates schema and grants privileges if needed. Fully idempotent.
-    Prints extra info for troubleshooting.
+    Logs details for troubleshooting.
     """
     conn = await get_connection(autocommit=True)
     try:
         with conn.cursor() as cursor:
-            # Get session details for troubleshooting
+            # Get session details
             cursor.execute("VALUES SESSION_USER")
             session_user = cursor.fetchone()[0].strip().upper()
 
@@ -60,22 +60,31 @@ async def initialize_table():
                 (schema,)
             )
             if not cursor.fetchone():
-                # Confirm user exists in DB2 catalog
-                print(f"[INFO] Schema '{schema}' does not exist. Checking if user '{schema}' exists...")
+                print(f"[INFO] Schema '{schema}' does not exist.")
+
+                # Check if the user or role exists in SYSUSERAUTH
+                print(f"[INFO] Checking if authorization ID '{schema}' exists in SYSUSERAUTH...")
                 cursor.execute(
-                    "SELECT 1 FROM SYSIBM.SYSUSERAUTH WHERE AUTHID = ?",
+                    "SELECT 1 FROM SYSIBM.SYSUSERAUTH WHERE GRANTEE = ?",
                     (schema,)
                 )
-                if cursor.fetchone():
-                    print(f"[INFO] User '{schema}' exists. Attempting to create schema...")
-                    try:
-                        cursor.execute(f"CREATE SCHEMA {schema} AUTHORIZATION {schema}")
-                        print(f"[INFO] Schema '{schema}' created successfully.")
-                    except Exception as e:
-                        print(f"[WARN] Could not create schema '{schema}': {e}")
-                else:
-                    print(f"[ERROR] User '{schema}' does not exist in DB2. Cannot create schema.")
-                    return {"error": f"User '{schema}' does not exist in DB2. Please create the user first."}
+                if not cursor.fetchone():
+                    error_msg = (
+                        f"Authorization ID '{schema}' does not exist in DB2 catalog. "
+                        f"Cannot create schema. Please ensure the user or role '{schema}' "
+                        f"is created in DB2 with SYSADM privileges before running initialization."
+                    )
+                    print(f"[ERROR] {error_msg}")
+                    return {"error": error_msg}
+
+                # User exists in SYSUSERAUTH -> attempt to create schema
+                print(f"[INFO] User '{schema}' exists. Attempting to create schema...")
+                try:
+                    cursor.execute(f"CREATE SCHEMA {schema} AUTHORIZATION {schema}")
+                    print(f"[INFO] Schema '{schema}' created successfully.")
+                except Exception as e:
+                    print(f"[WARN] Could not create schema '{schema}': {e}")
+                    return {"error": f"Failed to create schema '{schema}': {e}"}
 
             # Check CREATEIN privilege
             print(f"[INFO] Checking CREATEIN privilege for '{schema}' on schema '{schema}'...")
