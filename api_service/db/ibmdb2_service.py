@@ -29,17 +29,18 @@ async def get_connection(autocommit: bool = True):
 
 async def initialize_table():
     """
-    Ensures the ADMINUSER schema exists, and creates the transaction_records table if it does not already exist.
+    Ensures the connected user's schema exists, and creates the transaction_records table if it does not already exist.
+    Designed to be idempotent and safe to run multiple times.
     """
     conn = await get_connection(autocommit=True)
     try:
         with conn.cursor() as cursor:
-            # Determine the current schema (matches connected user)
+            # Get the current schema (should match the connected user)
             cursor.execute("VALUES CURRENT SCHEMA")
             schema = cursor.fetchone()[0].strip().upper()
             print(f"[INFO] Current schema: {schema}")
 
-            # Check if the schema exists
+            # 1. Check if the schema exists
             cursor.execute("""
                 SELECT 1 FROM SYSCAT.SCHEMATA WHERE SCHEMANAME = ?
             """, (schema,))
@@ -48,7 +49,7 @@ async def initialize_table():
                 cursor.execute(f"CREATE SCHEMA {schema}")
                 print(f"[INFO] Schema '{schema}' created successfully.")
 
-            # Check if the table already exists in the schema
+            # 2. Check if the table exists in the schema
             cursor.execute("""
                 SELECT 1 FROM SYSCAT.TABLES
                 WHERE TABNAME = ? AND TABSCHEMA = ?
@@ -57,7 +58,7 @@ async def initialize_table():
                 print(f"[INFO] Table '{TABLE_NAME}' already exists in schema '{schema}'.")
                 return {"message": f"Table '{TABLE_NAME}' already exists in IBM Db2."}
 
-            # Table does not exist - create it
+            # 3. Create the table
             create_table_sql = f"""
             CREATE TABLE {schema}.{TABLE_NAME} (
                 transaction_id VARCHAR(36) PRIMARY KEY,
@@ -88,8 +89,6 @@ async def initialize_table():
             print("[INFO] Connection closed.")
         except Exception as close_error:
             print(f"[WARN] Exception during connection close: {close_error}")
-
-
 
 
 
