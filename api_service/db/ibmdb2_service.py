@@ -4,12 +4,11 @@
 
 import uuid
 import random
-import json
 import ibm_db_dbi
 from typing import Optional
 from fastapi import Body
 from datetime import datetime, timedelta
-from api_service.db.base import get_ibm_db2_connection, get_db_credentials
+from api_service.db.base import get_ibm_db2_connection
 
 # Parameter Store name for IBM Db2 credentials
 PARAM_NAME = "/Liverpool/RDS/IBMDB2/Credentials"
@@ -48,7 +47,6 @@ async def initialize_table():
             try:
                 cursor.execute(create_table_sql)
             except Exception as e:
-                # Ignore "already exists" error
                 if "SQLCODE=-601" in str(e) or "already exists" in str(e):
                     pass
                 else:
@@ -131,9 +129,9 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
 
 async def select_transaction():
     """
-    Retrieves a single random transaction record from the table.
+    Retrieves a single transaction record from the table.
     """
-    select_sql = f"SELECT * FROM {TABLE_NAME} ORDER BY RAND() FETCH FIRST 1 ROW ONLY"
+    select_sql = f"SELECT * FROM {TABLE_NAME} FETCH FIRST 1 ROW ONLY"
 
     conn = await get_connection()
     try:
@@ -152,7 +150,7 @@ async def select_transaction():
 
 async def update_random_transaction_status():
     """
-    Updates the 'status' field of one random transaction record in IBM Db2.
+    Updates the 'status' field of one transaction record in IBM Db2.
     """
     statuses = ["Completed", "Pending", "Failed", "Refunded"]
     new_status = random.choice(statuses)
@@ -160,10 +158,10 @@ async def update_random_transaction_status():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RAND() FETCH FIRST 1 ROW ONLY")
+            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} FETCH FIRST 1 ROW ONLY")
             result = cursor.fetchone()
 
-            if not result:
+            if not result or result[0] is None:
                 return {"message": "No records found to update in the IBM Db2 table."}
 
             transaction_id = result[0]
@@ -183,15 +181,15 @@ async def update_random_transaction_status():
 
 async def delete_random_transaction():
     """
-    Deletes one random transaction record from the IBM Db2 table.
+    Deletes one transaction record from the IBM Db2 table.
     """
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RAND() FETCH FIRST 1 ROW ONLY")
+            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} FETCH FIRST 1 ROW ONLY")
             result = cursor.fetchone()
 
-            if not result:
+            if not result or result[0] is None:
                 return {"message": "No records found to delete in the IBM Db2 table."}
 
             transaction_id = result[0]
