@@ -35,12 +35,12 @@ async def initialize_table():
     conn = await get_connection(autocommit=True)
     try:
         with conn.cursor() as cursor:
-            # Get the current schema (should match the connected user)
+            # Determine the current schema for this session
             cursor.execute("VALUES CURRENT SCHEMA")
             schema = cursor.fetchone()[0].strip().upper()
             print(f"[INFO] Current schema: {schema}")
 
-            # 1. Check if the schema exists
+            # 1. Ensure the schema exists
             cursor.execute("""
                 SELECT 1 FROM SYSCAT.SCHEMATA WHERE SCHEMANAME = ?
             """, (schema,))
@@ -49,7 +49,7 @@ async def initialize_table():
                 cursor.execute(f"CREATE SCHEMA {schema}")
                 print(f"[INFO] Schema '{schema}' created successfully.")
 
-            # 2. Check if the table exists in the schema
+            # 2. Check if the table already exists
             cursor.execute("""
                 SELECT 1 FROM SYSCAT.TABLES
                 WHERE TABNAME = ? AND TABSCHEMA = ?
@@ -58,10 +58,10 @@ async def initialize_table():
                 print(f"[INFO] Table '{TABLE_NAME}' already exists in schema '{schema}'.")
                 return {"message": f"Table '{TABLE_NAME}' already exists in IBM Db2."}
 
-            # 3. Create the table
+            # 3. Create the table with NOT NULL on PK
             create_table_sql = f"""
             CREATE TABLE {schema}.{TABLE_NAME} (
-                transaction_id VARCHAR(36) PRIMARY KEY,
+                transaction_id VARCHAR(36) NOT NULL PRIMARY KEY,
                 user_id VARCHAR(36),
                 transaction_ts TIMESTAMP,
                 product_id VARCHAR(36),
@@ -89,8 +89,6 @@ async def initialize_table():
             print("[INFO] Connection closed.")
         except Exception as close_error:
             print(f"[WARN] Exception during connection close: {close_error}")
-
-
 
 
 async def load_sample_data():
