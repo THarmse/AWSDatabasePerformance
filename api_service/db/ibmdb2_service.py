@@ -46,8 +46,7 @@ async def get_connection():
 
 async def initialize_table():
     """
-    Creates the database (schema) if it does not exist, then creates the transaction_records table.
-    Note: In RDS for Db2, database creation is not supported dynamically, so assumes DB exists.
+    Creates the transaction_records table if it does not already exist.
     """
     conn = await get_connection()
     try:
@@ -57,6 +56,7 @@ async def initialize_table():
         return {"message": f"Table '{TABLE_NAME}' initialized successfully in IBM Db2."}
     finally:
         conn.close()
+
 
 
 async def load_sample_data():
