@@ -59,7 +59,7 @@ async def initialize_table():
 
             # Table does not exist - create it
             create_table_sql = f"""
-            CREATE TABLE {TABLE_NAME} (
+            CREATE TABLE {schema}.{TABLE_NAME} (
                 transaction_id VARCHAR(36) PRIMARY KEY,
                 user_id VARCHAR(36),
                 transaction_ts TIMESTAMP,
