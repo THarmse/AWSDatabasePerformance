@@ -19,8 +19,11 @@ TABLE_NAME = "transaction_records"
 async def get_connection():
     """
     Returns a new ibm_db_dbi connection using the base utility function.
+    Enables autocommit for stateless REST interactions.
     """
-    return get_ibm_db2_connection(PARAM_NAME)
+    conn = get_ibm_db2_connection(PARAM_NAME)
+    conn.autocommit = True
+    return conn
 
 
 async def initialize_table():
@@ -51,7 +54,6 @@ async def initialize_table():
                     pass
                 else:
                     raise
-        conn.commit()
         return {"message": f"Table '{TABLE_NAME}' initialized successfully in IBM Db2."}
     finally:
         conn.close()
@@ -121,7 +123,6 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
                     record["status"]
                 )
             )
-        conn.commit()
         return {"message": "Record inserted successfully into IBM Db2.", "transaction_id": record["transaction_id"]}
     finally:
         conn.close()
@@ -173,7 +174,6 @@ async def update_random_transaction_status():
             """
             cursor.execute(update_sql, (new_status, transaction_id))
 
-        conn.commit()
         return {"message": f"Updated status to '{new_status}' for transaction_id {transaction_id} in IBM Db2."}
     finally:
         conn.close()
@@ -197,7 +197,6 @@ async def delete_random_transaction():
             delete_sql = f"DELETE FROM {TABLE_NAME} WHERE transaction_id = ?"
             cursor.execute(delete_sql, (transaction_id,))
 
-        conn.commit()
         return {"message": f"Deleted transaction with ID {transaction_id} from IBM Db2."}
     finally:
         conn.close()
