@@ -32,18 +32,17 @@ async def initialize_table():
     Ensures the transaction_records table exists in IBM Db2.
     Checks the catalog for existence before creating.
     Explicitly commits DDL to avoid autocommit issues with CREATE TABLE.
-    Returns any DB2 error messages
+    Returns any DB2 error message clearly.
     """
-    # For DDL,  disable autocommit so it can explicitly commit
     conn = await get_connection(autocommit=False)
     try:
         with conn.cursor() as cursor:
-            # Determine the current schema
+            # Determine current schema
             cursor.execute("SELECT CURRENT SCHEMA FROM SYSIBM.SYSDUMMY1")
             schema_result = cursor.fetchone()
             schema = schema_result[0].strip().upper()
 
-            # Check if the table exists in the current schema
+            # Check if the table exists
             exists_query = """
             SELECT 1 FROM SYSCAT.TABLES 
             WHERE TABNAME = ? AND TABSCHEMA = ?
@@ -52,9 +51,10 @@ async def initialize_table():
             result = cursor.fetchone()
 
             if result:
+                print(f"[INFO] Table {TABLE_NAME} already exists in schema {schema}.")
                 return {"message": f"Table '{TABLE_NAME}' already exists in IBM Db2."}
 
-            # Table does not exist - create it
+            # Table does not exist - attempt to create
             create_table_sql = f"""
             CREATE TABLE {TABLE_NAME} (
                 transaction_id VARCHAR(36) PRIMARY KEY,
@@ -69,17 +69,25 @@ async def initialize_table():
                 status VARCHAR(20)
             )
             """
+            print(f"[INFO] Executing CREATE TABLE:\n{create_table_sql}")
             cursor.execute(create_table_sql)
+            print("[INFO] CREATE TABLE executed successfully, committing transaction.")
             conn.commit()
+            print("[INFO] Commit completed.")
 
         return {"message": f"Table '{TABLE_NAME}' created successfully in IBM Db2."}
 
     except Exception as e:
-        # Return the actual DB2 error message
+        print(f"[ERROR] Exception during initialize_table: {e}")
         return {"error": str(e)}
 
     finally:
-        conn.close()
+        try:
+            conn.close()
+            print("[INFO] Connection closed.")
+        except Exception as close_error:
+            print(f"[WARN] Exception during connection close: {close_error}")
+
 
 
 async def load_sample_data():
