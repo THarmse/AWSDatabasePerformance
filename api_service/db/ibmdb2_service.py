@@ -28,11 +28,28 @@ async def get_connection():
 
 async def initialize_table():
     """
-    Creates the transaction_records table if it does not already exist.
+    Ensures the transaction_records table exists in IBM Db2.
+    Checks the catalog for existence before creating.
     """
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
+            # Normalize schema to uppercase (DB2 is case-insensitive but stores in uppercase)
+            schema = 'ADMINUSER'
+
+            # Check if the table exists
+            exists_query = """
+            SELECT 1 FROM SYSCAT.TABLES 
+            WHERE TABNAME = ? AND TABSCHEMA = ?
+            """
+            cursor.execute(exists_query, (TABLE_NAME.upper(), schema))
+            result = cursor.fetchone()
+
+            if result:
+                # Table already exists
+                return {"message": f"Table '{TABLE_NAME}' already exists in IBM Db2."}
+
+            # Table does not exist - create it
             create_table_sql = f"""
             CREATE TABLE {TABLE_NAME} (
                 transaction_id VARCHAR(36) PRIMARY KEY,
@@ -47,16 +64,12 @@ async def initialize_table():
                 status VARCHAR(20)
             )
             """
-            try:
-                cursor.execute(create_table_sql)
-            except Exception as e:
-                if "SQLCODE=-601" in str(e) or "already exists" in str(e):
-                    pass
-                else:
-                    raise
-        return {"message": f"Table '{TABLE_NAME}' initialized successfully in IBM Db2."}
+            cursor.execute(create_table_sql)
+
+        return {"message": f"Table '{TABLE_NAME}' created successfully in IBM Db2."}
     finally:
         conn.close()
+
 
 
 async def load_sample_data():
