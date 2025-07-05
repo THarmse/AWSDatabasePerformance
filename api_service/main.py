@@ -92,9 +92,15 @@ from api_service.db.dynamodb_service import (
     delete_random_transaction as dynamodb_delete_random_transaction
 )
 
-
-
-
+# Import IBM DB2 service functions
+from api_service.db.ibmdb2_service import (
+    initialize_table as ibmdb2_initialize_table,
+    load_sample_data as ibmdb2_load_sample_data,
+    select_transaction as ibmdb2_select_transaction,
+    insert_transaction as ibmdb2_insert_transaction,
+    update_random_transaction_status as ibmdb2_update_random_transaction_status,
+    delete_random_transaction as ibmdb2_delete_random_transaction
+)
 
 # Define FastAPI app
 app = FastAPI(
@@ -734,6 +740,84 @@ async def api_dynamodb_delete_random_transaction():
     """
     try:
         result = await dynamodb_delete_random_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# -------------------------
+# IBM Db2 Endpoints
+# -------------------------
+
+@app.get("/ibmdb2/initialize")
+async def api_ibmdb2_initialize_table():
+    """
+    Initialize the transaction_records table in IBM Db2.
+    """
+    try:
+        result = await ibmdb2_initialize_table()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/ibmdb2/load-sample-data")
+async def api_ibmdb2_load_sample_data():
+    """
+    Insert 1 randomly generated sample record into the IBM Db2 table.
+    """
+    try:
+        result = await ibmdb2_load_sample_data()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/ibmdb2/select-random")
+async def api_ibmdb2_select_random_transaction():
+    """
+    Retrieve one random transaction record from the IBM Db2 table.
+    """
+    try:
+        result = await ibmdb2_select_transaction()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/ibmdb2/insert")
+async def api_ibmdb2_insert_transaction(record: TransactionRecord):
+    """
+    Insert a new transaction record into IBM Db2.
+    transaction_id is generated automatically.
+    """
+    try:
+        result = await ibmdb2_insert_transaction(record.dict())
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/ibmdb2/update-random-status")
+async def api_ibmdb2_update_random_status():
+    """
+    Update the 'status' field of one random transaction record in IBM Db2.
+    No parameters required.
+    """
+    try:
+        result = await ibmdb2_update_random_transaction_status()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/ibmdb2/delete-random")
+async def api_ibmdb2_delete_random_transaction():
+    """
+    Delete one random transaction record from the IBM Db2 table.
+    No parameters required.
+    """
+    try:
+        result = await ibmdb2_delete_random_transaction()
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -6,6 +6,7 @@ psycopg2-binary
 pyodbc
 pymssql
 cx_Oracle
-ibm_db
-ibm_db_sa
+ibm-db
+ibm-db-dbi
+ibm-db-sa
 SQLAlchemy

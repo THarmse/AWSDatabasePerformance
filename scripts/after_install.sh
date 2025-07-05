@@ -48,6 +48,9 @@ cat <<EOF > /etc/httpd/conf.d/app.conf
     ProxyPass /dynamodb/ http://127.0.0.1:8000/dynamodb/
     ProxyPassReverse /dynamodb/ http://127.0.0.1:8000/dynamodb/
 
+    ProxyPass /ibmdb2/ http://127.0.0.1:8000/ibmdb2/
+    ProxyPassReverse /ibmdb2/ http://127.0.0.1:8000/ibmdb2/
+
     ProxyPass /docs http://127.0.0.1:8000/docs
     ProxyPassReverse /docs http://127.0.0.1:8000/docs
 </VirtualHost>
