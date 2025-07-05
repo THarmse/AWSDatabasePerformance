@@ -32,8 +32,9 @@ async def initialize_table():
     Ensures the transaction_records table exists in IBM Db2.
     Checks the catalog for existence before creating.
     Explicitly commits DDL to avoid autocommit issues with CREATE TABLE.
+    Returns any DB2 error messages
     """
-    # For DDL, we disable autocommit so we can explicitly commit
+    # For DDL,  disable autocommit so it can explicitly commit
     conn = await get_connection(autocommit=False)
     try:
         with conn.cursor() as cursor:
@@ -72,6 +73,11 @@ async def initialize_table():
             conn.commit()
 
         return {"message": f"Table '{TABLE_NAME}' created successfully in IBM Db2."}
+
+    except Exception as e:
+        # Return the actual DB2 error message
+        return {"error": str(e)}
+
     finally:
         conn.close()
 
