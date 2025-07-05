@@ -29,27 +29,34 @@ async def get_connection(autocommit: bool = True):
 
 async def initialize_table():
     """
-    Ensures the connected user's schema exists, and creates the transaction_records table if it does not already exist.
-    Designed to be idempotent and safe to run multiple times.
+    Ensures the schema and the transaction_records table exist.
+    Creates the schema if it does not exist and has authority.
+    Creates the table if it does not exist.
+    Logs all steps for debugging.
     """
-    conn = await get_connection(autocommit=True)
+    conn = await get_connection(autocommit=False)
     try:
         with conn.cursor() as cursor:
-            # Determine the current schema for this session
+            # Get the current schema (should match the connected user)
             cursor.execute("VALUES CURRENT SCHEMA")
             schema = cursor.fetchone()[0].strip().upper()
             print(f"[INFO] Current schema: {schema}")
 
-            # 1. Ensure the schema exists
+            # 1. Check if schema exists
             cursor.execute("""
                 SELECT 1 FROM SYSCAT.SCHEMATA WHERE SCHEMANAME = ?
             """, (schema,))
             if not cursor.fetchone():
-                print(f"[INFO] Schema '{schema}' does not exist. Creating it.")
-                cursor.execute(f"CREATE SCHEMA {schema}")
-                print(f"[INFO] Schema '{schema}' created successfully.")
+                print(f"[INFO] Schema '{schema}' does not exist. Attempting to create it.")
+                try:
+                    cursor.execute(f"CREATE SCHEMA {schema}")
+                    conn.commit()
+                    print(f"[INFO] Schema '{schema}' created successfully.")
+                except Exception as e:
+                    print(f"[ERROR] Failed to create schema '{schema}': {e}")
+                    return {"error": f"Failed to create schema '{schema}'. Ensure the user has DBADM or SYSADM authority."}
 
-            # 2. Check if the table already exists
+            # 2. Check if table exists
             cursor.execute("""
                 SELECT 1 FROM SYSCAT.TABLES
                 WHERE TABNAME = ? AND TABSCHEMA = ?
@@ -58,7 +65,7 @@ async def initialize_table():
                 print(f"[INFO] Table '{TABLE_NAME}' already exists in schema '{schema}'.")
                 return {"message": f"Table '{TABLE_NAME}' already exists in IBM Db2."}
 
-            # 3. Create the table with NOT NULL on PK
+            # 3. Create table
             create_table_sql = f"""
             CREATE TABLE {schema}.{TABLE_NAME} (
                 transaction_id VARCHAR(36) NOT NULL PRIMARY KEY,
@@ -75,6 +82,7 @@ async def initialize_table():
             """
             print(f"[INFO] Creating table with SQL:\n{create_table_sql}")
             cursor.execute(create_table_sql)
+            conn.commit()
             print(f"[INFO] Table '{TABLE_NAME}' created successfully in schema '{schema}'.")
 
         return {"message": f"Table '{TABLE_NAME}' created successfully in IBM Db2."}
@@ -89,6 +97,7 @@ async def initialize_table():
             print("[INFO] Connection closed.")
         except Exception as close_error:
             print(f"[WARN] Exception during connection close: {close_error}")
+
 
 
 async def load_sample_data():
