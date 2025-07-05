@@ -16,13 +16,14 @@ PARAM_NAME = "/Liverpool/RDS/IBMDB2/Credentials"
 # Table name
 TABLE_NAME = "transaction_records"
 
-async def get_connection():
+
+async def get_connection(autocommit: bool = True):
     """
     Returns a new ibm_db_dbi connection using the base utility function.
-    Enables autocommit for stateless REST interactions.
+    By default, enables autocommit for stateless REST interactions.
     """
     conn = get_ibm_db2_connection(PARAM_NAME)
-    conn.autocommit = True
+    conn.autocommit = autocommit
     return conn
 
 
@@ -30,14 +31,18 @@ async def initialize_table():
     """
     Ensures the transaction_records table exists in IBM Db2.
     Checks the catalog for existence before creating.
+    Explicitly commits DDL to avoid autocommit issues with CREATE TABLE.
     """
-    conn = await get_connection()
+    # For DDL, we disable autocommit so we can explicitly commit
+    conn = await get_connection(autocommit=False)
     try:
         with conn.cursor() as cursor:
-            # Normalize schema to uppercase (DB2 is case-insensitive but stores in uppercase)
-            schema = 'ADMINUSER'
+            # Determine the current schema
+            cursor.execute("SELECT CURRENT SCHEMA FROM SYSIBM.SYSDUMMY1")
+            schema_result = cursor.fetchone()
+            schema = schema_result[0].strip().upper()
 
-            # Check if the table exists
+            # Check if the table exists in the current schema
             exists_query = """
             SELECT 1 FROM SYSCAT.TABLES 
             WHERE TABNAME = ? AND TABSCHEMA = ?
@@ -46,7 +51,6 @@ async def initialize_table():
             result = cursor.fetchone()
 
             if result:
-                # Table already exists
                 return {"message": f"Table '{TABLE_NAME}' already exists in IBM Db2."}
 
             # Table does not exist - create it
@@ -65,11 +69,11 @@ async def initialize_table():
             )
             """
             cursor.execute(create_table_sql)
+            conn.commit()
 
         return {"message": f"Table '{TABLE_NAME}' created successfully in IBM Db2."}
     finally:
         conn.close()
-
 
 
 async def load_sample_data():
