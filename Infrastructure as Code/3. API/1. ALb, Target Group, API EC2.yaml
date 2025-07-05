@@ -35,6 +35,7 @@ Parameters:
       - t3.2xlarge
       - m6i.large
       - m6i.xlarge
+      - m6i.2xlarge
     Description: EC2 Instance type
 
   EC2AmiId:

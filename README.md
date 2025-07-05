@@ -59,6 +59,9 @@ ps aux | grep uvicorn
 
 NOTES:
 DynamoDB does not support float and using Decimal instead for unit_price and total_amount
+Auto Scaling is not enabled for Self healing, and will not pull the latest code.  Pipeline has to be run to ge the code on teh isntance
+AWS Quota limit has to be increased on EC2 for the number for vCPUs in new accounts. Default is 16 vCPU and needs to be increased to 64 vCPU
+
 
 For IBM
 https://cloud.ibm.com/registration?target=/db2-wh&uucid=0d24d74b852ef96a&utm_content=DABWW
