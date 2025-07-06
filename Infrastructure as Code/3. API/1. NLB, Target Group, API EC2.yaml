@@ -27,7 +27,7 @@ Parameters:
 
   EC2InstanceType:
     Type: String
-    Default: t3.medium
+    Default: m6i.large
     AllowedValues:
       - t3.medium
       - t3.large
@@ -56,7 +56,7 @@ Parameters:
 
   EC2VolumeSize:
     Type: Number
-    Default: 30
+    Default: 40
     Description: EC2 root EBS volume size (GB)
 
   MinSize:
