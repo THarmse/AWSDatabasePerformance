@@ -9,6 +9,7 @@ import pyodbc
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from threading import Lock
+from urllib.parse import quote_plus
 
 import psycopg2
 import psycopg2.extras
@@ -33,8 +34,10 @@ def _get_mysql_engine(param_name: str) -> Engine:
     with _lock:
         if _mysql_engine is None:
             creds = json.loads(get_db_credentials(param_name))
+            username = quote_plus(creds['username'])
+            password = quote_plus(creds['password'])
             _mysql_engine = create_engine(
-                f"mysql+pymysql://{creds['username']}:{creds['password']}@{creds['host']}:{creds['port']}/{creds['database']}",
+                f"mysql+pymysql://{username}:{password}@{creds['host']}:{creds['port']}/{creds['database']}",
                 pool_size=200,
                 max_overflow=100,
                 pool_recycle=3600
@@ -58,8 +61,10 @@ def _get_postgresql_engine(param_name: str) -> Engine:
     with _lock:
         if _postgresql_engine is None:
             creds = json.loads(get_db_credentials(param_name))
+            username = quote_plus(creds['username'])
+            password = quote_plus(creds['password'])
             _postgresql_engine = create_engine(
-                f"postgresql+psycopg2://{creds['username']}:{creds['password']}@{creds['host']}:{creds['port']}/{creds['database']}",
+                f"postgresql+psycopg2://{username}:{password}@{creds['host']}:{creds['port']}/{creds['database']}",
                 pool_size=200,
                 max_overflow=100,
                 pool_recycle=3600
@@ -83,8 +88,10 @@ def _get_mariadb_engine(param_name: str) -> Engine:
     with _lock:
         if _mariadb_engine is None:
             creds = json.loads(get_db_credentials(param_name))
+            username = quote_plus(creds['username'])
+            password = quote_plus(creds['password'])
             _mariadb_engine = create_engine(
-                f"mysql+pymysql://{creds['username']}:{creds['password']}@{creds['host']}:{creds['port']}/{creds['database']}",
+                f"mysql+pymysql://{username}:{password}@{creds['host']}:{creds['port']}/{creds['database']}",
                 pool_size=200,
                 max_overflow=100,
                 pool_recycle=3600
@@ -102,8 +109,11 @@ def _get_mssql_engine(param_name: str) -> Engine:
     with _lock:
         if _mssql_engine is None:
             creds = json.loads(get_db_credentials(param_name))
+            username = quote_plus(creds['username'])
+            password = quote_plus(creds['password'])
+            driver = quote_plus("ODBC Driver 17 for SQL Server")
             _mssql_engine = create_engine(
-                f"mssql+pyodbc://{creds['username']}:{creds['password']}@{creds['host']}:{creds.get('port', 1433)}/{creds['database']}?driver=ODBC+Driver+17+for+SQL+Server",
+                f"mssql+pyodbc://{username}:{password}@{creds['host']}:{creds.get('port', 1433)}/{creds['database']}?driver={driver}",
                 pool_size=200,
                 max_overflow=100,
                 pool_recycle=3600
@@ -121,8 +131,10 @@ def _get_oracle_engine(param_name: str) -> Engine:
     with _lock:
         if _oracle_engine is None:
             creds = json.loads(get_db_credentials(param_name))
+            username = quote_plus(creds['username'])
+            password = quote_plus(creds['password'])
             _oracle_engine = create_engine(
-                f"oracle+cx_oracle://{creds['username']}:{creds['password']}@{creds['host']}:{creds.get('port', 1521)}/?service_name={creds['database']}",
+                f"oracle+cx_oracle://{username}:{password}@{creds['host']}:{creds.get('port', 1521)}/?service_name={creds['database']}",
                 pool_size=200,
                 max_overflow=100,
                 pool_recycle=3600
@@ -140,8 +152,10 @@ def _get_ibmdb2_engine(param_name: str) -> Engine:
     with _lock:
         if _ibmdb2_engine is None:
             creds = json.loads(get_db_credentials(param_name))
+            username = quote_plus(creds['username'])
+            password = quote_plus(creds['password'])
             _ibmdb2_engine = create_engine(
-                f"ibm_db_sa://{creds['username']}:{creds['password']}@{creds['host']}:{creds.get('port', 50000)}/{creds['database']}",
+                f"ibm_db_sa://{username}:{password}@{creds['host']}:{creds.get('port', 50000)}/{creds['database']}",
                 pool_size=200,
                 max_overflow=100,
                 pool_recycle=3600
