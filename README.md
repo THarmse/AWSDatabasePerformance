@@ -18,6 +18,8 @@ Deployments
 4. RDS MySQL Instance
 
 When doing IBM, activate Marketplace Pay-as-you-use license first
+Request EC2 limit increase
+Request Paramter Store GetParameter request increase to 300
 
 
 5. ALB
