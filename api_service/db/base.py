@@ -19,7 +19,7 @@ _aurora_mysql_engine = None
 _postgresql_engine = None
 _aurora_postgresql_engine = None
 _mariadb_engine = None
-_mssql_engine = None
+_mssql_engines = {}
 _oracle_engine = None
 _ibmdb2_engine = None
 
@@ -100,16 +100,15 @@ def get_mariadb_connection(param_name: str):
 
 # ----------------- MSSQL -----------------------
 def _get_mssql_engine(param_name: str) -> Engine:
-    global _mssql_engine
     with _lock:
-        if _mssql_engine is None:
+        if param_name not in _mssql_engines:
             creds = json.loads(get_db_credentials(param_name))
             driver = quote_plus("ODBC Driver 17 for SQL Server")
-            _mssql_engine = create_engine(
+            _mssql_engines[param_name] = create_engine(
                 f"mssql+pyodbc://{quote_plus(creds['username'])}:{quote_plus(creds['password'])}@{creds['host']}:{creds.get('port', 1433)}/{creds['database']}?driver={driver}",
                 pool_size=200, max_overflow=100, pool_recycle=3600
             )
-        return _mssql_engine
+        return _mssql_engines[param_name]
 
 def get_mssqlserver_connection(param_name: str):
     return _get_mssql_engine(param_name).raw_connection()
