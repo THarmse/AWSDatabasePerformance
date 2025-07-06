@@ -2,6 +2,7 @@ import json
 import os
 import boto3
 import pyodbc
+import urllib.parse
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from threading import Lock
@@ -101,17 +102,26 @@ def get_mariadb_connection(param_name: str):
     return _get_mariadb_engine(param_name).raw_connection()
 
 # ----------------- MSSQL -----------------------
+def _create_mssql_engine(creds, target_db):
+    conn_str = (
+        f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+        f"SERVER={creds['host']},{creds.get('port', 1433)};"
+        f"DATABASE={target_db};"
+        f"UID={creds['username']};"
+        f"PWD={creds['password']}"
+    )
+    odbc_connect = urllib.parse.quote_plus(conn_str)
+    return create_engine(
+        f"mssql+pyodbc:///?odbc_connect={odbc_connect}",
+        pool_size=200, max_overflow=100, pool_recycle=3600
+    )
+
 def _get_mssql_master_engine(param_name: str) -> Engine:
     global _mssql_engine_master
     with _mssql_lock:
         if _mssql_engine_master is None:
             creds = json.loads(get_db_credentials(param_name))
-            driver = quote_plus("ODBC Driver 17 for SQL Server")
-            _mssql_engine_master = create_engine(
-                f"mssql+pyodbc://{quote_plus(creds['username'])}:{quote_plus(creds['password'])}"
-                f"@{creds['host']}:{creds.get('port', 1433)}/master?driver={driver}",
-                pool_size=200, max_overflow=100, pool_recycle=3600
-            )
+            _mssql_engine_master = _create_mssql_engine(creds, "master")
         return _mssql_engine_master
 
 def get_mssqlserver_master_connection(param_name: str):
@@ -122,18 +132,11 @@ def _get_mssql_target_engine(param_name: str) -> Engine:
     with _mssql_lock:
         if _mssql_engine_target is None:
             creds = json.loads(get_db_credentials(param_name))
-            driver = quote_plus("ODBC Driver 17 for SQL Server")
-            _mssql_engine_target = create_engine(
-                f"mssql+pyodbc://{quote_plus(creds['username'])}:{quote_plus(creds['password'])}"
-                f"@{creds['host']}:{creds.get('port', 1433)}/{quote_plus(creds['database'])}?driver={driver}",
-                pool_size=200, max_overflow=100, pool_recycle=3600
-            )
+            _mssql_engine_target = _create_mssql_engine(creds, creds['database'])
         return _mssql_engine_target
 
 def get_mssqlserver_connection(param_name: str):
     return _get_mssql_target_engine(param_name).raw_connection()
-
-
 
 # ----------------- ORACLE -----------------------
 def _get_oracle_engine(param_name: str) -> Engine:
