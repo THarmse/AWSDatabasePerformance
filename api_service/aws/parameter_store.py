@@ -45,7 +45,7 @@ _STATIC_CREDENTIALS = {
 
     # Microsoft SQL Server
     "/Liverpool/RDS/MSSQLServer/Credentials": json.dumps({
-        "host": "mssql.liverpool.com",
+        "host": "sqlserver.liverpool.com", 
         "username": "adminuser",
         "password": "Password123!",
         "database": "performance_db",
