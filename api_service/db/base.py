@@ -47,8 +47,9 @@ def _get_mysql_engine(param_name: str) -> Engine:
 def get_mysql_connection(param_name: str):
     """
     MySQL connection using PyMySQL via SQLAlchemy Engine Pool.
+    Returns raw DBAPI connection for use with .cursor().
     """
-    return _get_mysql_engine(param_name).connect()
+    return _get_mysql_engine(param_name).raw_connection()
 
 def get_aurora_mysql_connection(param_name: str):
     """
@@ -74,8 +75,9 @@ def _get_postgresql_engine(param_name: str) -> Engine:
 def get_postgresql_connection(param_name: str):
     """
     PostgreSQL connection using psycopg2 via SQLAlchemy Engine Pool.
+    Returns raw DBAPI connection for use with .cursor().
     """
-    return _get_postgresql_engine(param_name).connect()
+    return _get_postgresql_engine(param_name).raw_connection()
 
 def get_aurora_postgresql_connection(param_name: str):
     """
@@ -101,8 +103,9 @@ def _get_mariadb_engine(param_name: str) -> Engine:
 def get_mariadb_connection(param_name: str):
     """
     MariaDB connection using PyMySQL via SQLAlchemy Engine Pool.
+    Returns raw DBAPI connection for use with .cursor().
     """
-    return _get_mariadb_engine(param_name).connect()
+    return _get_mariadb_engine(param_name).raw_connection()
 
 def _get_mssql_engine(param_name: str) -> Engine:
     global _mssql_engine
@@ -123,8 +126,9 @@ def _get_mssql_engine(param_name: str) -> Engine:
 def get_mssqlserver_connection(param_name: str):
     """
     Microsoft SQL Server connection using SQLAlchemy Engine Pool.
+    Returns raw DBAPI connection for use with .cursor().
     """
-    return _get_mssql_engine(param_name).connect()
+    return _get_mssql_engine(param_name).raw_connection()
 
 def _get_oracle_engine(param_name: str) -> Engine:
     global _oracle_engine
@@ -144,8 +148,9 @@ def _get_oracle_engine(param_name: str) -> Engine:
 def get_oracle_connection(param_name: str):
     """
     Oracle 19c connection using cx_Oracle via SQLAlchemy Engine Pool.
+    Returns raw DBAPI connection for use with .cursor().
     """
-    return _get_oracle_engine(param_name).connect()
+    return _get_oracle_engine(param_name).raw_connection()
 
 def _get_ibmdb2_engine(param_name: str) -> Engine:
     global _ibmdb2_engine
@@ -165,8 +170,9 @@ def _get_ibmdb2_engine(param_name: str) -> Engine:
 def get_ibm_db2_connection(param_name: str):
     """
     IBM DB2 connection using ibm_db_sa via SQLAlchemy Engine Pool.
+    Returns raw DBAPI connection for use with .cursor().
     """
-    return _get_ibmdb2_engine(param_name).connect()
+    return _get_ibmdb2_engine(param_name).raw_connection()
 
 def get_dynamodb_resource():
     """
