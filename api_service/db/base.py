@@ -20,7 +20,6 @@ _aurora_mysql_engine = None
 _postgresql_engine = None
 _aurora_postgresql_engine = None
 _mariadb_engine = None
-_mssql_engine_master = None
 _mssql_engine_target = None
 _oracle_engine = None
 _ibmdb2_engine = None
@@ -102,11 +101,28 @@ def get_mariadb_connection(param_name: str):
     return _get_mariadb_engine(param_name).raw_connection()
 
 # ----------------- MSSQL -----------------------
-def _create_mssql_engine(creds, target_db):
+def get_mssqlserver_master_connection(param_name: str):
+    """
+    Direct pyodbc connection for master DB (no pooling), for CREATE DATABASE etc.
+    """
+    creds = json.loads(get_db_credentials(param_name))
     conn_str = (
         f"DRIVER={{ODBC Driver 17 for SQL Server}};"
         f"SERVER={creds['host']},{creds.get('port', 1433)};"
-        f"DATABASE={target_db};"
+        f"DATABASE=master;"
+        f"UID={creds['username']};"
+        f"PWD={creds['password']}"
+    )
+    return pyodbc.connect(conn_str, autocommit=True)
+
+def _create_mssql_engine(creds) -> Engine:
+    """
+    SQLAlchemy engine with pooling for the actual target database.
+    """
+    conn_str = (
+        f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+        f"SERVER={creds['host']},{creds.get('port', 1433)};"
+        f"DATABASE={creds['database']};"
         f"UID={creds['username']};"
         f"PWD={creds['password']}"
     )
@@ -116,23 +132,12 @@ def _create_mssql_engine(creds, target_db):
         pool_size=200, max_overflow=100, pool_recycle=3600
     )
 
-def _get_mssql_master_engine(param_name: str) -> Engine:
-    global _mssql_engine_master
-    with _mssql_lock:
-        if _mssql_engine_master is None:
-            creds = json.loads(get_db_credentials(param_name))
-            _mssql_engine_master = _create_mssql_engine(creds, "master")
-        return _mssql_engine_master
-
-def get_mssqlserver_master_connection(param_name: str):
-    return _get_mssql_master_engine(param_name).raw_connection()
-
 def _get_mssql_target_engine(param_name: str) -> Engine:
     global _mssql_engine_target
     with _mssql_lock:
         if _mssql_engine_target is None:
             creds = json.loads(get_db_credentials(param_name))
-            _mssql_engine_target = _create_mssql_engine(creds, creds['database'])
+            _mssql_engine_target = _create_mssql_engine(creds)
         return _mssql_engine_target
 
 def get_mssqlserver_connection(param_name: str):
