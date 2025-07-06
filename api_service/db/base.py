@@ -17,7 +17,7 @@ import psycopg2.extras
 REGION = os.environ.get("AWS_REGION", "eu-west-1")
 
 # Caching for parameter store
-from parameter_store import get_db_credentials
+from api_service.aws.parameter_store import get_db_credentials
 
 # Connection pool engines
 _mysql_engine = None
