@@ -19,11 +19,13 @@ _aurora_mysql_engine = None
 _postgresql_engine = None
 _aurora_postgresql_engine = None
 _mariadb_engine = None
-_mssql_engines = {}
+_mssql_engine_master = None
+_mssql_engine_target = None
 _oracle_engine = None
 _ibmdb2_engine = None
 
 _lock = Lock()
+_mssql_lock = Lock()
 
 # ----------------- MYSQL -----------------------
 def _get_mysql_engine(param_name: str) -> Engine:
@@ -99,19 +101,35 @@ def get_mariadb_connection(param_name: str):
     return _get_mariadb_engine(param_name).raw_connection()
 
 # ----------------- MSSQL -----------------------
-def _get_mssql_engine(param_name: str) -> Engine:
-    with _lock:
-        if param_name not in _mssql_engines:
-            creds = json.loads(get_db_credentials(param_name))
-            driver = quote_plus("ODBC Driver 17 for SQL Server")
-            _mssql_engines[param_name] = create_engine(
-                f"mssql+pyodbc://{quote_plus(creds['username'])}:{quote_plus(creds['password'])}@{creds['host']}:{creds.get('port', 1433)}/{creds['database']}?driver={driver}",
-                pool_size=200, max_overflow=100, pool_recycle=3600
-            )
-        return _mssql_engines[param_name]
+def _get_mssql_engine(param_name: str, use_master: bool) -> Engine:
+    global _mssql_engine_master, _mssql_engine_target
+    creds = json.loads(get_db_credentials(param_name))
+    driver = quote_plus("ODBC Driver 17 for SQL Server")
+    target_db = "master" if use_master else creds['database']
+
+    with _mssql_lock:
+        if use_master:
+            if _mssql_engine_master is None:
+                _mssql_engine_master = create_engine(
+                    f"mssql+pyodbc://{quote_plus(creds['username'])}:{quote_plus(creds['password'])}"
+                    f"@{creds['host']}:{creds.get('port', 1433)}/{target_db}?driver={driver}",
+                    pool_size=200, max_overflow=100, pool_recycle=3600
+                )
+            return _mssql_engine_master
+        else:
+            if _mssql_engine_target is None:
+                _mssql_engine_target = create_engine(
+                    f"mssql+pyodbc://{quote_plus(creds['username'])}:{quote_plus(creds['password'])}"
+                    f"@{creds['host']}:{creds.get('port', 1433)}/{target_db}?driver={driver}",
+                    pool_size=200, max_overflow=100, pool_recycle=3600
+                )
+            return _mssql_engine_target
+
+def get_mssqlserver_master_connection(param_name: str):
+    return _get_mssql_engine(param_name, use_master=True).raw_connection()
 
 def get_mssqlserver_connection(param_name: str):
-    return _get_mssql_engine(param_name).raw_connection()
+    return _get_mssql_engine(param_name, use_master=False).raw_connection()
 
 # ----------------- ORACLE -----------------------
 def _get_oracle_engine(param_name: str) -> Engine:
