@@ -24,7 +24,7 @@ Request Paramter Store GetParameter request increase to 300
 
 5. ALB
 
-6. CICD Pipeline  
+6. CICD Pipeline   
    a  Create clone of Public repo
    b. Create GitHub connection in AWS (ireland region) 
    c. Create Cloudformation stack with lowercase name ONLY ie. cicd 
