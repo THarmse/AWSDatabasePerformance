@@ -89,4 +89,4 @@ Apache JMeter - Setup
 - Ensure Java 8+ is installed: https://javadl.oracle.com/webapps/download/AutoDL?xd_co_f=YzVhYzVlYjUtOTQ5Ni00NzI5LWI3ODAtZmRiYzJkY2Y2MThl&BundleId=252044_8a1589aa0fe24566b4337beee47c2d29
 - Download https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.zip
 - Extact the .zip file
-- navigate to the bin folder and run jmeter.bat
+- navigate to the bin folder and run jmeter.bat   
