@@ -6,7 +6,7 @@ Setup:
 1. Install the AWS CLI https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 1. Run AWS Configure and specify the region as eu-west-1 and supply the access key and secret key (only for validations in visual studio)
 1. Run pip install cfn-lint
-
+1. Clone the repository to C:\code
 
 Deployments
 1. Networking.yaml  (Stack Name:  Networking)

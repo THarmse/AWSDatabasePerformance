@@ -1,0 +1,2 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1751812698946,50404,MySQL - Initialize Table,200,OK,Initialize Tables 1-1,text,true,,248,138,1,1,http://nlb.liverpool.com/mysql/initialize,50399,0,29

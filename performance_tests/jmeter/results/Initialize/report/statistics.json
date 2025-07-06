@@ -1,0 +1,34 @@
+{
+  "Total" : {
+    "transaction" : "Total",
+    "sampleCount" : 1,
+    "errorCount" : 0,
+    "errorPct" : 0.0,
+    "meanResTime" : 50404.0,
+    "medianResTime" : 50404.0,
+    "minResTime" : 50404.0,
+    "maxResTime" : 50404.0,
+    "pct1ResTime" : 50404.0,
+    "pct2ResTime" : 50404.0,
+    "pct3ResTime" : 50404.0,
+    "throughput" : 0.019839695262280774,
+    "receivedKBytesPerSec" : 0.004804926196333624,
+    "sentKBytesPerSec" : 0.002673708931830807
+  },
+  "MySQL - Initialize Table" : {
+    "transaction" : "MySQL - Initialize Table",
+    "sampleCount" : 1,
+    "errorCount" : 0,
+    "errorPct" : 0.0,
+    "meanResTime" : 50404.0,
+    "medianResTime" : 50404.0,
+    "minResTime" : 50404.0,
+    "maxResTime" : 50404.0,
+    "pct1ResTime" : 50404.0,
+    "pct2ResTime" : 50404.0,
+    "pct3ResTime" : 50404.0,
+    "throughput" : 0.019839695262280774,
+    "receivedKBytesPerSec" : 0.004804926196333624,
+    "sentKBytesPerSec" : 0.002673708931830807
+  }
+}
