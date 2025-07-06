@@ -53,7 +53,7 @@ _STATIC_CREDENTIALS = {
     }),
 
     # Oracle
-    "/Liverpool/RDS/Oracle/Credentials": json.dumps({
+    "/Liverpool/RDS/OracleDB/Credentials": json.dumps({
         "host": "oracle.liverpool.com",
         "username": "adminuser",
         "password": "Password123!",

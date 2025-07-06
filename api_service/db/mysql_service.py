@@ -143,11 +143,13 @@ async def update_random_transaction_status():
         with conn.cursor() as cursor:
             # Get a random transaction_id
             cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RAND() LIMIT 1")
-            result = cursor.fetchone()
+            row = cursor.fetchone()
 
-            if not result:
+            if not row:
                 return {"message": "No records found to update."}
 
+            columns = [col[0] for col in cursor.description]
+            result = dict(zip(columns, row))
             transaction_id = result["transaction_id"]
 
             # Update the status
@@ -163,6 +165,7 @@ async def update_random_transaction_status():
     finally:
         conn.close()
 
+
 async def delete_random_transaction():
     """
     Deletes one random transaction record from the table.
@@ -173,11 +176,13 @@ async def delete_random_transaction():
         with conn.cursor() as cursor:
             # Get a random transaction_id
             cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RAND() LIMIT 1")
-            result = cursor.fetchone()
+            row = cursor.fetchone()
 
-            if not result:
+            if not row:
                 return {"message": "No records found to delete."}
 
+            columns = [col[0] for col in cursor.description]
+            result = dict(zip(columns, row))
             transaction_id = result["transaction_id"]
 
             # Delete the record
@@ -188,3 +193,4 @@ async def delete_random_transaction():
         return {"message": f"Deleted transaction with ID {transaction_id}."}
     finally:
         conn.close()
+
