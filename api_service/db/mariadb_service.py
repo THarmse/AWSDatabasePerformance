@@ -52,11 +52,11 @@ async def initialize_table():
 
 async def load_sample_data():
     """
-    Inserts 1 random sample records into the transaction_records table.
+    Inserts 1 random sample record into the transaction_records table.
     """
     for _ in range(1):
         await insert_transaction(record=None)
-    return {"message": "1 sample records inserted successfully into MariaDB."}
+    return {"message": "1 sample record inserted successfully into MariaDB."}
 
 async def insert_transaction(record: Optional[dict] = Body(None)):
     """
@@ -84,7 +84,6 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
             "status": random.choice(statuses)
         }
 
-    # Always assign a new transaction_id
     record["transaction_id"] = str(uuid.uuid4())
 
     insert_sql = f"""
@@ -104,13 +103,17 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
         with conn.cursor() as cursor:
             cursor.execute(insert_sql, record)
         conn.commit()
-        return {"message": "Record inserted successfully into MariaDB.", "transaction_id": record["transaction_id"]}
+        return {
+            "message": "Record inserted successfully into MariaDB.",
+            "record": {k.lower(): v for k, v in record.items()}
+        }
     finally:
         conn.close()
 
 async def select_transaction():
     """
     Retrieves a single random transaction record from the MariaDB table.
+    Returns JSON with column names as keys (lowercase).
     """
     select_sql = f"SELECT * FROM {TABLE_NAME} ORDER BY RAND() LIMIT 1"
 
@@ -118,11 +121,15 @@ async def select_transaction():
     try:
         with conn.cursor() as cursor:
             cursor.execute(select_sql)
-            result = cursor.fetchone()
-        if result:
+            row = cursor.fetchone()
+
+            if not row:
+                return {"message": "No records found in the MariaDB table."}
+
+            columns = [col[0] for col in cursor.description]
+            result = {col.lower(): val for col, val in zip(columns, row)}
+
             return {"record": result}
-        else:
-            return {"message": "No records found in the MariaDB table."}
     finally:
         conn.close()
 
@@ -137,16 +144,16 @@ async def update_random_transaction_status():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            # Retrieve a random transaction_id
             cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RAND() LIMIT 1")
-            result = cursor.fetchone()
+            row = cursor.fetchone()
 
-            if not result:
+            if not row:
                 return {"message": "No records found to update in the MariaDB table."}
 
+            columns = [col[0] for col in cursor.description]
+            result = {col.lower(): val for col, val in zip(columns, row)}
             transaction_id = result["transaction_id"]
 
-            # Perform the update
             update_sql = f"""
             UPDATE {TABLE_NAME}
             SET status = %s
@@ -167,16 +174,16 @@ async def delete_random_transaction():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            # Retrieve a random transaction_id
             cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RAND() LIMIT 1")
-            result = cursor.fetchone()
+            row = cursor.fetchone()
 
-            if not result:
+            if not row:
                 return {"message": "No records found to delete in the MariaDB table."}
 
+            columns = [col[0] for col in cursor.description]
+            result = {col.lower(): val for col, val in zip(columns, row)}
             transaction_id = result["transaction_id"]
 
-            # Perform the deletion
             delete_sql = f"DELETE FROM {TABLE_NAME} WHERE transaction_id = %s"
             cursor.execute(delete_sql, (transaction_id,))
 

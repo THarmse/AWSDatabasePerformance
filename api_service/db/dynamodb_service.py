@@ -13,7 +13,6 @@ from decimal import Decimal
 from botocore.exceptions import ClientError
 from api_service.db.base import get_db_credentials
 
-# Parameter Store name for DynamoDB credentials
 PARAM_NAME = "/Liverpool/DynamoDB/Credentials"
 
 async def get_table():
@@ -46,7 +45,7 @@ async def initialize_table():
         return {"message": f"Table '{table_name}' already exists in DynamoDB."}
     except ClientError as e:
         if e.response['Error']['Code'] != 'ResourceNotFoundException':
-            raise
+            return {"error": str(e)}
         # Create the table
         table = dynamodb.create_table(
             TableName=table_name,
@@ -59,17 +58,15 @@ async def initialize_table():
 
 async def load_sample_data():
     """
-    Calls insert_transaction() to insert 1 random records.
+    Inserts 1 random sample record into the transaction_records table.
     """
-    for _ in range(1):
-        await insert_transaction(record=None)
-    return {"message": "1 sample records inserted successfully into DynamoDB."}
+    await insert_transaction(record=None)
+    return {"message": "1 sample record inserted successfully into DynamoDB."}
 
 async def insert_transaction(record: Optional[dict] = Body(None)):
     """
     Inserts a new transaction record into the table.
     If no record is provided, generates a new random sample record.
-    Automatically assigns a unique transaction_id.
     """
     if record is None:
         currencies = ["USD", "EUR", "GBP"]
@@ -79,7 +76,6 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
         quantity = random.randint(1, 5)
         unit_price = Decimal(str(round(random.uniform(5.0, 100.0), 2)))
         total_amount = Decimal(str(round(quantity * unit_price, 2)))
-
 
         record = {
             "user_id": f"user-{random.randint(100, 999)}",
@@ -93,26 +89,29 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
             "status": random.choice(statuses)
         }
 
-    # Always assign a new transaction_id
     record["transaction_id"] = str(uuid.uuid4())
 
-    table = await get_table()
-    table.put_item(Item=record)
-    return {"message": "Record inserted successfully into DynamoDB.", "transaction_id": record["transaction_id"]}
+    try:
+        table = await get_table()
+        table.put_item(Item=record)
+        return {"message": "Record inserted successfully into DynamoDB.", "transaction_id": record["transaction_id"]}
+    except ClientError as e:
+        return {"error": str(e)}
 
 async def select_transaction():
     """
     Retrieves one random transaction record from the DynamoDB table.
     """
-    table = await get_table()
-    scan_response = table.scan(Limit=10)  # Fetch up to 10 items to choose randomly
-
-    items = scan_response.get("Items", [])
-    if not items:
-        return {"message": "No records found in the DynamoDB table."}
-
-    selected = random.choice(items)
-    return {"record": selected}
+    try:
+        table = await get_table()
+        scan_response = table.scan(Limit=10)
+        items = scan_response.get("Items", [])
+        if not items:
+            return {"message": "No records found in the DynamoDB table."}
+        selected = random.choice(items)
+        return {"record": selected}
+    except ClientError as e:
+        return {"error": str(e)}
 
 async def update_random_transaction_status():
     """
@@ -122,44 +121,41 @@ async def update_random_transaction_status():
     statuses = ["Completed", "Pending", "Failed", "Refunded"]
     new_status = random.choice(statuses)
 
-    table = await get_table()
-    # Fetch some items to choose one randomly
-    scan_response = table.scan(Limit=10)
-    items = scan_response.get("Items", [])
+    try:
+        table = await get_table()
+        scan_response = table.scan(Limit=10)
+        items = scan_response.get("Items", [])
+        if not items:
+            return {"message": "No records found to update in the DynamoDB table."}
 
-    if not items:
-        return {"message": "No records found to update in the DynamoDB table."}
+        selected = random.choice(items)
+        transaction_id = selected["transaction_id"]
 
-    selected = random.choice(items)
-    transaction_id = selected["transaction_id"]
-
-    # Perform the update
-    table.update_item(
-        Key={"transaction_id": transaction_id},
-        UpdateExpression="SET #s = :status",
-        ExpressionAttributeNames={"#s": "status"},
-        ExpressionAttributeValues={":status": new_status}
-    )
-
-    return {"message": f"Updated status to '{new_status}' for transaction_id {transaction_id} in DynamoDB."}
+        table.update_item(
+            Key={"transaction_id": transaction_id},
+            UpdateExpression="SET #s = :status",
+            ExpressionAttributeNames={"#s": "status"},
+            ExpressionAttributeValues={":status": new_status}
+        )
+        return {"message": f"Updated status to '{new_status}' for transaction_id {transaction_id} in DynamoDB."}
+    except ClientError as e:
+        return {"error": str(e)}
 
 async def delete_random_transaction():
     """
     Deletes one random transaction record from the DynamoDB table.
-    No parameters required.
     """
-    table = await get_table()
-    # Fetch some items to choose one randomly
-    scan_response = table.scan(Limit=10)
-    items = scan_response.get("Items", [])
+    try:
+        table = await get_table()
+        scan_response = table.scan(Limit=10)
+        items = scan_response.get("Items", [])
+        if not items:
+            return {"message": "No records found to delete in the DynamoDB table."}
 
-    if not items:
-        return {"message": "No records found to delete in the DynamoDB table."}
+        selected = random.choice(items)
+        transaction_id = selected["transaction_id"]
 
-    selected = random.choice(items)
-    transaction_id = selected["transaction_id"]
-
-    # Perform the deletion
-    table.delete_item(Key={"transaction_id": transaction_id})
-
-    return {"message": f"Deleted transaction with ID {transaction_id} from DynamoDB."}
+        table.delete_item(Key={"transaction_id": transaction_id})
+        return {"message": f"Deleted transaction with ID {transaction_id} from DynamoDB."}
+    except ClientError as e:
+        return {"error": str(e)}

@@ -4,12 +4,10 @@
 
 import uuid
 import random
-import json
-import cx_Oracle
 from typing import Optional
 from fastapi import Body
 from datetime import datetime, timedelta
-from api_service.db.base import get_oracle_connection, get_db_credentials
+from api_service.db.base import get_oracle_connection
 
 # Parameter Store name for Oracle credentials
 PARAM_NAME = "/Liverpool/RDS/OracleDB/Credentials"
@@ -62,16 +60,15 @@ async def initialize_table():
 
 async def load_sample_data():
     """
-    Calls insert_transaction() to insert 1 random records.
+    Inserts 1 random sample record into the transaction_records table.
     """
-    for _ in range(1):
-        await insert_transaction(record=None)
-    return {"message": "1 sample records inserted successfully into Oracle."}
+    await insert_transaction(record=None)
+    return {"message": "1 sample record inserted successfully into Oracle."}
 
 async def insert_transaction(record: Optional[dict] = Body(None)):
     """
     Inserts a new transaction record into the table.
-    If no record is provided, generates a new random sample record.
+    If no record is provided, generates a random sample record.
     Automatically assigns a unique transaction_id.
     """
     if record is None:
@@ -95,7 +92,6 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
             "status": random.choice(statuses)
         }
 
-    # Always assign a new transaction_id
     record["transaction_id"] = str(uuid.uuid4())
 
     insert_sql = f"""
@@ -127,14 +123,17 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
                 )
             )
         conn.commit()
-        return {"message": "Record inserted successfully into Oracle.", "transaction_id": record["transaction_id"]}
+        return {
+            "message": "Record inserted successfully into Oracle.",
+            "record": {k.lower(): v for k, v in record.items()}
+        }
     finally:
         conn.close()
 
 async def select_transaction():
     """
     Retrieves a single random transaction record from the table.
-    No parameters required.
+    Returns JSON with column names as lowercase keys.
     """
     select_sql = f"""
     SELECT *
@@ -147,13 +146,15 @@ async def select_transaction():
     try:
         with conn.cursor() as cursor:
             cursor.execute(select_sql)
-            columns = [col[0].lower() for col in cursor.description]
             row = cursor.fetchone()
-            if row:
-                result = dict(zip(columns, row))
-                return {"record": result}
-            else:
+
+            if not row:
                 return {"message": "No records found in the Oracle table."}
+
+            columns = [col[0].lower() for col in cursor.description]
+            result = dict(zip(columns, row))
+
+            return {"record": result}
     finally:
         conn.close()
 
@@ -168,27 +169,23 @@ async def update_random_transaction_status():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            # Retrieve a random transaction_id
-            select_sql = f"""
-            SELECT transaction_id FROM (
-                SELECT transaction_id FROM {TABLE_NAME} ORDER BY dbms_random.value
-            ) WHERE ROWNUM = 1
-            """
-            cursor.execute(select_sql)
-            result = cursor.fetchone()
+            cursor.execute(f"""
+                SELECT transaction_id FROM (
+                    SELECT transaction_id FROM {TABLE_NAME} ORDER BY dbms_random.value
+                ) WHERE ROWNUM = 1
+            """)
+            row = cursor.fetchone()
 
-            if not result:
+            if not row:
                 return {"message": "No records found to update in the Oracle table."}
 
-            transaction_id = result[0]
+            transaction_id = row[0]
 
-            # Perform the update
-            update_sql = f"""
-            UPDATE {TABLE_NAME}
-            SET status = :1
-            WHERE transaction_id = :2
-            """
-            cursor.execute(update_sql, (new_status, transaction_id))
+            cursor.execute(f"""
+                UPDATE {TABLE_NAME}
+                SET status = :1
+                WHERE transaction_id = :2
+            """, (new_status, transaction_id))
 
         conn.commit()
         return {"message": f"Updated status to '{new_status}' for transaction_id {transaction_id} in Oracle."}
@@ -203,23 +200,22 @@ async def delete_random_transaction():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            # Retrieve a random transaction_id
-            select_sql = f"""
-            SELECT transaction_id FROM (
-                SELECT transaction_id FROM {TABLE_NAME} ORDER BY dbms_random.value
-            ) WHERE ROWNUM = 1
-            """
-            cursor.execute(select_sql)
-            result = cursor.fetchone()
+            cursor.execute(f"""
+                SELECT transaction_id FROM (
+                    SELECT transaction_id FROM {TABLE_NAME} ORDER BY dbms_random.value
+                ) WHERE ROWNUM = 1
+            """)
+            row = cursor.fetchone()
 
-            if not result:
+            if not row:
                 return {"message": "No records found to delete in the Oracle table."}
 
-            transaction_id = result[0]
+            transaction_id = row[0]
 
-            # Perform the deletion
-            delete_sql = f"DELETE FROM {TABLE_NAME} WHERE transaction_id = :1"
-            cursor.execute(delete_sql, (transaction_id,))
+            cursor.execute(
+                f"DELETE FROM {TABLE_NAME} WHERE transaction_id = :1",
+                (transaction_id,)
+            )
 
         conn.commit()
         return {"message": f"Deleted transaction with ID {transaction_id} from Oracle."}

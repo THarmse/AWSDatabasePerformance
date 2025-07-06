@@ -48,11 +48,11 @@ async def initialize_table():
 
 async def load_sample_data():
     """
-    Calls insert_transaction() to insert 1 random records.
+    Calls insert_transaction() to insert 1 random record.
     """
     for _ in range(1):
         await insert_transaction(record=None)
-    return {"message": "1 sample records inserted successfully."}
+    return {"message": "1 sample record inserted successfully."}
 
 async def insert_transaction(record: Optional[dict] = Body(None)):
     """
@@ -114,14 +114,17 @@ async def insert_transaction(record: Optional[dict] = Body(None)):
                 )
             )
         conn.commit()
-        return {"message": "Record inserted successfully.", "transaction_id": record["transaction_id"]}
+        return {
+            "message": "Record inserted successfully.",
+            "record": {k.lower(): v for k, v in record.items()}
+        }
     finally:
         conn.close()
 
 async def select_transaction():
     """
     Retrieves a single random transaction record from the table.
-    No parameters required.
+    Returns JSON with column names as keys (lowercase).
     """
     select_sql = f"SELECT * FROM {TABLE_NAME} ORDER BY RANDOM() LIMIT 1"
 
@@ -129,11 +132,15 @@ async def select_transaction():
     try:
         with conn.cursor() as cursor:
             cursor.execute(select_sql)
-            result = cursor.fetchone()
-        if result:
+            row = cursor.fetchone()
+
+            if not row:
+                return {"message": "No records found in the table."}
+
+            columns = [col[0] for col in cursor.description]
+            result = {col.lower(): val for col, val in zip(columns, row)}
+
             return {"record": result}
-        else:
-            return {"message": "No records found in the table."}
     finally:
         conn.close()
 
@@ -148,16 +155,16 @@ async def update_random_transaction_status():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            # Retrieve a random transaction_id
             cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RANDOM() LIMIT 1")
-            result = cursor.fetchone()
+            row = cursor.fetchone()
 
-            if not result:
+            if not row:
                 return {"message": "No records found to update in the PostgreSQL table."}
 
+            columns = [col[0] for col in cursor.description]
+            result = {col.lower(): val for col, val in zip(columns, row)}
             transaction_id = result["transaction_id"]
 
-            # Perform the update
             update_sql = f"""
             UPDATE {TABLE_NAME}
             SET status = %s
@@ -178,16 +185,16 @@ async def delete_random_transaction():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            # Retrieve a random transaction_id
             cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RANDOM() LIMIT 1")
-            result = cursor.fetchone()
+            row = cursor.fetchone()
 
-            if not result:
+            if not row:
                 return {"message": "No records found to delete in the PostgreSQL table."}
 
+            columns = [col[0] for col in cursor.description]
+            result = {col.lower(): val for col, val in zip(columns, row)}
             transaction_id = result["transaction_id"]
 
-            # Perform the deletion
             delete_sql = f"DELETE FROM {TABLE_NAME} WHERE transaction_id = %s"
             cursor.execute(delete_sql, (transaction_id,))
 
