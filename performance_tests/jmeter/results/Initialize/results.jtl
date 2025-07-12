@@ -1,2 +1,10 @@
 timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
-1751812698946,50404,MySQL - Initialize Table,200,OK,Initialize Tables 1-1,text,true,,248,138,1,1,http://nlb.liverpool.com/mysql/initialize,50399,0,29
+1752354757511,10061,MySQL - Initialize Table,500,Internal Server Error,Initialize Tables 1-1,text,false,,254,138,1,1,http://nlb.liverpool.com/mysql/initialize,10055,0,32
+1752354767576,11,Aurora MySQL - Initialize Table,200,OK,Initialize Tables 1-1,text,true,,264,144,1,1,http://nlb.liverpool.com/AuroraMySQL/initialize,11,0,2
+1752354767587,6,PostgreSQL - Initialize Table,200,OK,Initialize Tables 1-1,text,true,,247,143,1,1,http://nlb.liverpool.com/postgresql/initialize,6,0,0
+1752354767594,5,Aurora PostgreSQL - Initialize Table,200,OK,Initialize Tables 1-1,text,true,,247,149,1,1,http://nlb.liverpool.com/AuroraPostgreSQL/initialize,5,0,0
+1752354767600,11,MariaDB - Initialize Table,200,OK,Initialize Tables 1-1,text,true,,258,140,1,1,http://nlb.liverpool.com/mariadb/initialize,11,0,0
+1752354767612,23,MS SQL Server - Initialize Table,200,OK,Initialize Tables 1-1,text,true,,292,138,1,1,http://nlb.liverpool.com/mssql/initialize,23,0,0
+1752354767636,38,Oracle SE - Initialize Table,200,OK,Initialize Tables 1-1,text,true,,257,139,1,1,http://nlb.liverpool.com/oracle/initialize,38,0,0
+1752354767675,127,DynamoDB - Initialize Table,200,OK,Initialize Tables 1-1,text,true,,249,141,1,1,http://nlb.liverpool.com/dynamodb/initialize,127,0,0
+1752354767802,33,IBM DB2 - Initialize Table,200,OK,Initialize Tables 1-1,text,true,,248,139,1,1,http://nlb.liverpool.com/ibmdb2/initialize,33,0,0

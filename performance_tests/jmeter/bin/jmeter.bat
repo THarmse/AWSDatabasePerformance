@@ -193,6 +193,8 @@ if not defined JMETER_COMPLETE_ARGS (
     set ARGS=
 )
 
+echo HEAP settings: %HEAP%
+
 if "%JM_START%" == "start" (
     set JM_START=start "Apache_JMeter"
 )

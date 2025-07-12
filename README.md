@@ -63,7 +63,7 @@ sudo netstat -tulnp | grep 8000
 sudo kill 37794
 source /home/ec2-user/app/venv/bin/activate
 cd /home/ec2-user/app
-uvicorn api_service.main:app --host 127.0.0.1 --port 8000  
+uvicorn api_service.main:app --host 127.0.0.1 --port 8000
 
 
 NOTES:
@@ -92,3 +92,14 @@ Apache JMeter - Setup
 - Download https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.zip
 - Extact the .zip file
 - navigate to the bin folder and run jmeter.bat   
+
+
+MySQL performance on average 250 rows per second
+when trying to set SET GLOBAL innodb_flush_log_at_trx_commit = 2;
+0	5	12:49:08	SET GLOBAL innodb_flush_log_at_trx_commit = 2	Error Code: 1227. Access denied; you need (at least one of) the SUPER or SYSTEM_VARIABLES_ADMIN privilege(s) for this operation	0.000 sec
+The default is 1 and cannot be changed even with admin user for RDS
+
+When doing 15000 api requests over 3 seconds, 88.76% fail with error:
+	Non HTTP response code: java.net.BindException/Non HTTP response message: Address already in use: connect
+
+	when using 15000 over 5 seconds, 100% success

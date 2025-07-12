@@ -133,7 +133,7 @@ $(document).ready(function() {
         widgets: ['zebra']
     });
 
-    var data = {"OkPercent": 100.0, "KoPercent": 0.0};
+    var data = {"OkPercent": 88.88888888888889, "KoPercent": 11.11111111111111};
     var dataset = [
         {
             "label" : "FAIL",
@@ -173,7 +173,7 @@ $(document).ready(function() {
     });
 
     // Creates APDEX table
-    createTable($("#apdexTable"), {"supportsControllersDiscrimination": true, "overall": {"data": [0.0, 500, 1500, "Total"], "isController": false}, "titles": ["Apdex", "T (Toleration threshold)", "F (Frustration threshold)", "Label"], "items": [{"data": [0.0, 500, 1500, "MySQL - Initialize Table"], "isController": false}]}, function(index, item){
+    createTable($("#apdexTable"), {"supportsControllersDiscrimination": true, "overall": {"data": [0.8888888888888888, 500, 1500, "Total"], "isController": false}, "titles": ["Apdex", "T (Toleration threshold)", "F (Frustration threshold)", "Label"], "items": [{"data": [1.0, 500, 1500, "Aurora MySQL - Initialize Table"], "isController": false}, {"data": [1.0, 500, 1500, "MariaDB - Initialize Table"], "isController": false}, {"data": [1.0, 500, 1500, "PostgreSQL - Initialize Table"], "isController": false}, {"data": [1.0, 500, 1500, "IBM DB2 - Initialize Table"], "isController": false}, {"data": [1.0, 500, 1500, "MS SQL Server - Initialize Table"], "isController": false}, {"data": [1.0, 500, 1500, "DynamoDB - Initialize Table"], "isController": false}, {"data": [0.0, 500, 1500, "MySQL - Initialize Table"], "isController": false}, {"data": [1.0, 500, 1500, "Oracle SE - Initialize Table"], "isController": false}, {"data": [1.0, 500, 1500, "Aurora PostgreSQL - Initialize Table"], "isController": false}]}, function(index, item){
         switch(index){
             case 0:
                 item = item.toFixed(3);
@@ -187,7 +187,7 @@ $(document).ready(function() {
     }, [[0, 0]], 3);
 
     // Create statistics table
-    createTable($("#statisticsTable"), {"supportsControllersDiscrimination": true, "overall": {"data": ["Total", 1, 0, 0.0, 50404.0, 50404, 50404, 50404.0, 50404.0, 50404.0, 50404.0, 0.019839695262280774, 0.004804926196333624, 0.002673708931830807], "isController": false}, "titles": ["Label", "#Samples", "FAIL", "Error %", "Average", "Min", "Max", "Median", "90th pct", "95th pct", "99th pct", "Transactions/s", "Received", "Sent"], "items": [{"data": ["MySQL - Initialize Table", 1, 0, 0.0, 50404.0, 50404, 50404, 50404.0, 50404.0, 50404.0, 50404.0, 0.019839695262280774, 0.004804926196333624, 0.002673708931830807], "isController": false}]}, function(index, item){
+    createTable($("#statisticsTable"), {"supportsControllersDiscrimination": true, "overall": {"data": ["Total", 9, 1, 11.11111111111111, 1146.1111111111109, 5, 10061, 23.0, 10061.0, 10061.0, 10061.0, 0.8717551336691205, 0.21907388124757846, 0.12022577852576521], "isController": false}, "titles": ["Label", "#Samples", "FAIL", "Error %", "Average", "Min", "Max", "Median", "90th pct", "95th pct", "99th pct", "Transactions/s", "Received", "Sent"], "items": [{"data": ["Aurora MySQL - Initialize Table", 1, 0, 0.0, 11.0, 11, 11, 11.0, 11.0, 11.0, 11.0, 90.9090909090909, 23.4375, 12.78409090909091], "isController": false}, {"data": ["MariaDB - Initialize Table", 1, 0, 0.0, 11.0, 11, 11, 11.0, 11.0, 11.0, 11.0, 90.9090909090909, 22.904829545454547, 12.428977272727273], "isController": false}, {"data": ["PostgreSQL - Initialize Table", 1, 0, 0.0, 6.0, 6, 6, 6.0, 6.0, 6.0, 6.0, 166.66666666666666, 40.201822916666664, 23.274739583333332], "isController": false}, {"data": ["IBM DB2 - Initialize Table", 1, 0, 0.0, 33.0, 33, 33, 33.0, 33.0, 33.0, 33.0, 30.303030303030305, 7.339015151515151, 4.113399621212121], "isController": false}, {"data": ["MS SQL Server - Initialize Table", 1, 0, 0.0, 23.0, 23, 23, 23.0, 23.0, 23.0, 23.0, 43.47826086956522, 12.398097826086957, 5.859375], "isController": false}, {"data": ["DynamoDB - Initialize Table", 1, 0, 0.0, 127.0, 127, 127, 127.0, 127.0, 127.0, 127.0, 7.874015748031496, 1.914677657480315, 1.084215059055118], "isController": false}, {"data": ["MySQL - Initialize Table", 1, 1, 100.0, 10061.0, 10061, 10061, 10061.0, 10061.0, 10061.0, 10061.0, 0.09939369843951894, 0.02465429629261505, 0.013394853891263294], "isController": false}, {"data": ["Oracle SE - Initialize Table", 1, 0, 0.0, 38.0, 38, 38, 38.0, 38.0, 38.0, 38.0, 26.31578947368421, 6.604646381578948, 3.5721628289473686], "isController": false}, {"data": ["Aurora PostgreSQL - Initialize Table", 1, 0, 0.0, 5.0, 5, 5, 5.0, 5.0, 5.0, 5.0, 200.0, 48.2421875, 29.1015625], "isController": false}]}, function(index, item){
         switch(index){
             // Errors pct
             case 3:
@@ -217,7 +217,7 @@ $(document).ready(function() {
     }, [[0, 0]], 0, summaryTableHeader);
 
     // Create error table
-    createTable($("#errorsTable"), {"supportsControllersDiscrimination": false, "titles": ["Type of error", "Number of errors", "% in errors", "% in all samples"], "items": []}, function(index, item){
+    createTable($("#errorsTable"), {"supportsControllersDiscrimination": false, "titles": ["Type of error", "Number of errors", "% in errors", "% in all samples"], "items": [{"data": ["500/Internal Server Error", 1, 100.0, 11.11111111111111], "isController": false}]}, function(index, item){
         switch(index){
             case 2:
             case 3:
@@ -228,7 +228,7 @@ $(document).ready(function() {
     }, [[1, 1]]);
 
         // Create top5 errors by sampler
-    createTable($("#top5ErrorsBySamplerTable"), {"supportsControllersDiscrimination": false, "overall": {"data": ["Total", 1, 0, "", "", "", "", "", "", "", "", "", ""], "isController": false}, "titles": ["Sample", "#Samples", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors"], "items": [{"data": [], "isController": false}]}, function(index, item){
+    createTable($("#top5ErrorsBySamplerTable"), {"supportsControllersDiscrimination": false, "overall": {"data": ["Total", 9, 1, "500/Internal Server Error", 1, "", "", "", "", "", "", "", ""], "isController": false}, "titles": ["Sample", "#Samples", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors"], "items": [{"data": [], "isController": false}, {"data": [], "isController": false}, {"data": [], "isController": false}, {"data": [], "isController": false}, {"data": [], "isController": false}, {"data": [], "isController": false}, {"data": ["MySQL - Initialize Table", 1, 1, "500/Internal Server Error", 1, "", "", "", "", "", "", "", ""], "isController": false}, {"data": [], "isController": false}, {"data": [], "isController": false}]}, function(index, item){
         return item;
     }, [[0, 0]], 0);
 
