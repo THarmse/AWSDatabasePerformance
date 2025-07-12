@@ -63,7 +63,7 @@ sudo netstat -tulnp | grep 8000
 sudo kill 37794
 source /home/ec2-user/app/venv/bin/activate
 cd /home/ec2-user/app
-uvicorn api_service.main:app --host 127.0.0.1 --port 8000
+uvicorn api_service.main:app --host 127.0.0.1 --port 8000 
 
 
 NOTES:
