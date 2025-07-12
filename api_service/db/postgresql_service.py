@@ -126,7 +126,7 @@ async def select_transaction():
     Retrieves a single random transaction record from the table.
     Returns JSON with column names as keys (lowercase).
     """
-    select_sql = f"SELECT * FROM {TABLE_NAME} ORDER BY RANDOM() LIMIT 1"
+    select_sql = f"SELECT * FROM {TABLE_NAME} LIMIT 1"
 
     conn = await get_connection()
     try:
@@ -155,7 +155,7 @@ async def update_random_transaction_status():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RANDOM() LIMIT 1")
+            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} LIMIT 1")
             row = cursor.fetchone()
 
             if not row:
@@ -185,7 +185,7 @@ async def delete_random_transaction():
     conn = await get_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} ORDER BY RANDOM() LIMIT 1")
+            cursor.execute(f"SELECT transaction_id FROM {TABLE_NAME} LIMIT 1")
             row = cursor.fetchone()
 
             if not row:

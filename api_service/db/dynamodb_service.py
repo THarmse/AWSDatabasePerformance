@@ -104,7 +104,7 @@ async def select_transaction():
     """
     try:
         table = await get_table()
-        scan_response = table.scan(Limit=10)
+        scan_response = table.scan(Limit=1)
         items = scan_response.get("Items", [])
         if not items:
             return {"message": "No records found in the DynamoDB table."}
@@ -123,7 +123,7 @@ async def update_random_transaction_status():
 
     try:
         table = await get_table()
-        scan_response = table.scan(Limit=10)
+        scan_response = table.scan(Limit=1)
         items = scan_response.get("Items", [])
         if not items:
             return {"message": "No records found to update in the DynamoDB table."}
@@ -147,7 +147,7 @@ async def delete_random_transaction():
     """
     try:
         table = await get_table()
-        scan_response = table.scan(Limit=10)
+        scan_response = table.scan(Limit=1)
         items = scan_response.get("Items", [])
         if not items:
             return {"message": "No records found to delete in the DynamoDB table."}

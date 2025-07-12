@@ -135,12 +135,10 @@ async def select_transaction():
     Retrieves a single random transaction record from the table.
     Returns JSON with column names as lowercase keys.
     """
+
     select_sql = f"""
-    SELECT *
-    FROM (
-        SELECT * FROM {TABLE_NAME} ORDER BY dbms_random.value
-    ) WHERE ROWNUM = 1
-    """
+        SELECT * FROM {TABLE_NAME} WHERE ROWNUM = 1
+        """
 
     conn = await get_connection()
     try:
@@ -170,10 +168,9 @@ async def update_random_transaction_status():
     try:
         with conn.cursor() as cursor:
             cursor.execute(f"""
-                SELECT transaction_id FROM (
-                    SELECT transaction_id FROM {TABLE_NAME} ORDER BY dbms_random.value
-                ) WHERE ROWNUM = 1
-            """)
+                SELECT transaction_id FROM {TABLE_NAME} WHERE ROWNUM = 1
+                """)
+
             row = cursor.fetchone()
 
             if not row:
@@ -201,10 +198,8 @@ async def delete_random_transaction():
     try:
         with conn.cursor() as cursor:
             cursor.execute(f"""
-                SELECT transaction_id FROM (
-                    SELECT transaction_id FROM {TABLE_NAME} ORDER BY dbms_random.value
-                ) WHERE ROWNUM = 1
-            """)
+                SELECT transaction_id FROM {TABLE_NAME} WHERE ROWNUM = 1
+                """)
             row = cursor.fetchone()
 
             if not row:
