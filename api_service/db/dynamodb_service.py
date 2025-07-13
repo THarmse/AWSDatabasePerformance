@@ -15,45 +15,42 @@ from api_service.db.base import get_db_credentials
 
 PARAM_NAME = "/Liverpool/DynamoDB/Credentials"
 
+# --------- Global session/resource/table reuse ---------
+_creds = json.loads(get_db_credentials(PARAM_NAME))
+_session = boto3.Session(region_name=_creds["region"])
+_dynamodb_resource = _session.resource(
+    "dynamodb",
+    endpoint_url=_creds.get("endpoint")
+)
+_table = _dynamodb_resource.Table(_creds["table_name"])
+# ------------------------------------------------------------
+
 async def get_table():
     """
-    Returns a boto3 Table resource using credentials from Parameter Store.
+    Returns the globally initialized boto3 Table resource.
     """
-    creds = json.loads(get_db_credentials(PARAM_NAME))
-    session = boto3.Session(region_name=creds["region"])
-    dynamodb = session.resource(
-        "dynamodb",
-        endpoint_url=creds.get("endpoint")
-    )
-    return dynamodb.Table(creds["table_name"])
+    return _table
 
 async def initialize_table():
     """
     Checks if the table exists. If not, creates it.
     """
-    creds = json.loads(get_db_credentials(PARAM_NAME))
-    session = boto3.Session(region_name=creds["region"])
-    dynamodb = session.resource(
-        "dynamodb",
-        endpoint_url=creds.get("endpoint")
-    )
-    table_name = creds["table_name"]
+    table_name = _creds["table_name"]
 
     try:
-        table = dynamodb.Table(table_name)
-        table.load()
+        _table.load()
         return {"message": f"Table '{table_name}' already exists in DynamoDB."}
     except ClientError as e:
         if e.response['Error']['Code'] != 'ResourceNotFoundException':
             return {"error": str(e)}
         # Create the table
-        table = dynamodb.create_table(
+        new_table = _dynamodb_resource.create_table(
             TableName=table_name,
             KeySchema=[{'AttributeName': 'transaction_id', 'KeyType': 'HASH'}],
             AttributeDefinitions=[{'AttributeName': 'transaction_id', 'AttributeType': 'S'}],
             BillingMode='PAY_PER_REQUEST'
         )
-        table.wait_until_exists()
+        new_table.wait_until_exists()
         return {"message": f"Table '{table_name}' created successfully in DynamoDB."}
 
 async def load_sample_data():
