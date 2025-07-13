@@ -59,7 +59,7 @@ ps aux | grep uvicorn
 
 
 
-sudo netstat -tulnp | grep 8000  
+sudo netstat -tulnp | grep 8000   
 sudo kill 37794
 source /home/ec2-user/app/venv/bin/activate
 cd /home/ec2-user/app
