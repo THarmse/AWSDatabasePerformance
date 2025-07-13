@@ -133,7 +133,7 @@ $(document).ready(function() {
         widgets: ['zebra']
     });
 
-    var data = {"OkPercent": 99.91845610220169, "KoPercent": 0.08154389779831477};
+    var data = {"OkPercent": 99.93475006716905, "KoPercent": 0.0652499328309515};
     var dataset = [
         {
             "label" : "FAIL",
@@ -173,7 +173,7 @@ $(document).ready(function() {
     });
 
     // Creates APDEX table
-    createTable($("#apdexTable"), {"supportsControllersDiscrimination": true, "overall": {"data": [0.010736613210111443, 500, 1500, "Total"], "isController": false}, "titles": ["Apdex", "T (Toleration threshold)", "F (Frustration threshold)", "Label"], "items": [{"data": [0.010736613210111443, 500, 1500, "HTTP Request"], "isController": false}]}, function(index, item){
+    createTable($("#apdexTable"), {"supportsControllersDiscrimination": true, "overall": {"data": [0.5186474072747278, 500, 1500, "Total"], "isController": false}, "titles": ["Apdex", "T (Toleration threshold)", "F (Frustration threshold)", "Label"], "items": [{"data": [0.5186474072747278, 500, 1500, "HTTP Request"], "isController": false}]}, function(index, item){
         switch(index){
             case 0:
                 item = item.toFixed(3);
@@ -187,7 +187,7 @@ $(document).ready(function() {
     }, [[0, 0]], 3);
 
     // Create statistics table
-    createTable($("#statisticsTable"), {"supportsControllersDiscrimination": true, "overall": {"data": ["Total", 3679, 3, 0.08154389779831477, 19121.167436803495, 101, 30215, 22145.0, 23235.0, 24107.0, 27347.799999999996, 44.72241469433402, 20.024819880292476, 6.28396119762226], "isController": false}, "titles": ["Label", "#Samples", "FAIL", "Error %", "Average", "Min", "Max", "Median", "90th pct", "95th pct", "99th pct", "Transactions/s", "Received", "Sent"], "items": [{"data": ["HTTP Request", 3679, 3, 0.08154389779831477, 19121.167436803495, 101, 30215, 22145.0, 23235.0, 24107.0, 27347.799999999996, 44.72241469433402, 20.024819880292476, 6.28396119762226], "isController": false}]}, function(index, item){
+    createTable($("#statisticsTable"), {"supportsControllersDiscrimination": true, "overall": {"data": ["Total", 78161, 51, 0.0652499328309515, 759.0297079105919, 0, 2383, 807.0, 949.0, 978.0, 1089.9900000000016, 1281.9793665633354, 574.6247100216914, 180.1607169217143], "isController": false}, "titles": ["Label", "#Samples", "FAIL", "Error %", "Average", "Min", "Max", "Median", "90th pct", "95th pct", "99th pct", "Transactions/s", "Received", "Sent"], "items": [{"data": ["HTTP Request", 78161, 51, 0.0652499328309515, 759.0297079105919, 0, 2383, 807.0, 949.0, 978.0, 1089.9900000000016, 1281.9793665633354, 574.6247100216914, 180.1607169217143], "isController": false}]}, function(index, item){
         switch(index){
             // Errors pct
             case 3:
@@ -217,7 +217,7 @@ $(document).ready(function() {
     }, [[0, 0]], 0, summaryTableHeader);
 
     // Create error table
-    createTable($("#errorsTable"), {"supportsControllersDiscrimination": false, "titles": ["Type of error", "Number of errors", "% in errors", "% in all samples"], "items": [{"data": ["Non HTTP response code: org.apache.http.NoHttpResponseException/Non HTTP response message: nlb.liverpool.com:80 failed to respond", 3, 100.0, 0.08154389779831477], "isController": false}]}, function(index, item){
+    createTable($("#errorsTable"), {"supportsControllersDiscrimination": false, "titles": ["Type of error", "Number of errors", "% in errors", "% in all samples"], "items": [{"data": ["Non HTTP response code: org.apache.http.NoHttpResponseException/Non HTTP response message: nlb.liverpool.com:80 failed to respond", 51, 100.0, 0.0652499328309515], "isController": false}]}, function(index, item){
         switch(index){
             case 2:
             case 3:
@@ -228,7 +228,7 @@ $(document).ready(function() {
     }, [[1, 1]]);
 
         // Create top5 errors by sampler
-    createTable($("#top5ErrorsBySamplerTable"), {"supportsControllersDiscrimination": false, "overall": {"data": ["Total", 3679, 3, "Non HTTP response code: org.apache.http.NoHttpResponseException/Non HTTP response message: nlb.liverpool.com:80 failed to respond", 3, "", "", "", "", "", "", "", ""], "isController": false}, "titles": ["Sample", "#Samples", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors"], "items": [{"data": ["HTTP Request", 3679, 3, "Non HTTP response code: org.apache.http.NoHttpResponseException/Non HTTP response message: nlb.liverpool.com:80 failed to respond", 3, "", "", "", "", "", "", "", ""], "isController": false}]}, function(index, item){
+    createTable($("#top5ErrorsBySamplerTable"), {"supportsControllersDiscrimination": false, "overall": {"data": ["Total", 78161, 51, "Non HTTP response code: org.apache.http.NoHttpResponseException/Non HTTP response message: nlb.liverpool.com:80 failed to respond", 51, "", "", "", "", "", "", "", ""], "isController": false}, "titles": ["Sample", "#Samples", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors", "Error", "#Errors"], "items": [{"data": ["HTTP Request", 78161, 51, "Non HTTP response code: org.apache.http.NoHttpResponseException/Non HTTP response message: nlb.liverpool.com:80 failed to respond", 51, "", "", "", "", "", "", "", ""], "isController": false}]}, function(index, item){
         return item;
     }, [[0, 0]], 0);
 
