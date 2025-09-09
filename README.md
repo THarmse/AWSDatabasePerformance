@@ -1,6 +1,6 @@
 ﻿# AWS Database Performance – Infrastructure as Code
 
-_Theodor Harmse — University of Liverpool — Database Performance
+Theodor Harmse — University of Liverpool — Database Performance
 
 ## Table of Contents
 - [Overview](#overview)
@@ -41,9 +41,9 @@ This repository provisions a complete environment in **AWS eu-west-1 (Ireland)**
 ### AWS account (Ireland)
 - **Region:** `eu-west-1`
 - **Quotas to request early:**
-  - EC2 **vCPU limit**: increase to **64 vCPUs** for your chosen instance family.
+  - EC2 **vCPU limit**: increase to **64 vCPUs** for the m-class, r-class and t-class (On Demand).
   - **SSM Parameter Store** `GetParameter` API: raise to **300** requests/sec.
-- **IBM Db2 SE** (if used): ensure an **active AWS Marketplace subscription** before deploying the Db2 template.
+- **IBM Db2 SE** (if performance testing is done here): ensure an **active AWS Marketplace subscription** before deploying the Db2 template.
 - **GitHub connection** (for CI/CD): create a **CodeStar Connections** link to GitHub in **eu-west-1** and note the **Connection ARN**.
 - **EC2 key pair** (optional): create one in **eu-west-1** if you plan to SSH to instances.
 
@@ -128,15 +128,19 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 | PublicRouteTable2Id | ${AWS::StackName}-PublicRouteTable2Id | The ID of Public Route Table 2 (Public Tier) |
 | VPCFlowLogsBucket | ${AWS::StackName}-VPCFlowLogsBucket | The S3 Bucket Name for storing VPC Flow Logs |
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name Networking \
-  --template-file "cloudformation/1. Networking and Security Groups/1. Networking.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### VPC Endpoints (S3 & DynamoDB)
 
@@ -167,15 +171,19 @@ aws cloudformation deploy \
 - `Networking-PrivateRouteTable6Id`
 - `Networking-VPCId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name VPC-Endpoints \
-  --template-file "cloudformation/1. Networking and Security Groups/2. VPC Endpoints.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### Database Subnet Group
 
@@ -200,15 +208,19 @@ aws cloudformation deploy \
 - `!Sub "${NetworkingStackName}-PrivateSubnet5Id"`
 - `!Sub "${NetworkingStackName}-PrivateSubnet6Id"`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name DB-Subnet-Group \
-  --template-file "cloudformation/1. Networking and Security Groups/3. Database Subnet Group.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### Private Hosted Zone (Route 53)
 
@@ -232,15 +244,19 @@ aws cloudformation deploy \
 
 - `Networking-VPCId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name Private-Hosted-Zone \
-  --template-file "cloudformation/1. Networking and Security Groups/4. Private Hosted Zone.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### Security Groups and Ports
 
@@ -279,15 +295,18 @@ aws cloudformation deploy \
 
 - `Networking-VPCId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name SecurityGroup \
-  --template-file "cloudformation/1. Networking and Security Groups/5. Security Groups and Ports.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
 
 ---
 
@@ -329,15 +348,19 @@ aws cloudformation deploy \
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name RDS-Aurora-MySQL \
-  --template-file "cloudformation/2. Database Setup/Aurora MySQL/1. RDS Aurora MySQL Cluster.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### RDS Aurora PostgreSQL Cluster
 
@@ -375,15 +398,19 @@ aws cloudformation deploy \
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name RDS-Aurora-PostgreSQL \
-  --template-file "cloudformation/2. Database Setup/Aurora PostgreSQL/1. RDS Aurora PostgreSQL Cluster.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### DynamoDB Table
 
@@ -406,15 +433,19 @@ aws cloudformation deploy \
 | DynamoDBTableName |  | Name of the DynamoDB table |
 | ParameterStoreCredentialPath |  | SSM Parameter Store path for JSON credentials |
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name DynamoDB-Table \
-  --template-file "cloudformation/2. Database Setup/DynamoDB/1. DynamoDB Table.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### RDS IBM Db2 Standard Edition
 
@@ -451,15 +482,19 @@ aws cloudformation deploy \
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name RDS-IBM-DB2-SE \
-  --template-file "cloudformation/2. Database Setup/IBM DB2/1. RDS IBM DB2 SE.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### RDS MariaDB Instance
 
@@ -496,15 +531,19 @@ aws cloudformation deploy \
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name RDS-MariaDB \
-  --template-file "cloudformation/2. Database Setup/Maria DB/1. RDS MariaDB Instance.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### RDS Microsoft SQL Server SE Instance
 
@@ -542,15 +581,19 @@ aws cloudformation deploy \
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name RDS-MSSQL-SE \
-  --template-file "cloudformation/2. Database Setup/MS SQL Server/1. RDS MS SQL Server SE.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### RDS MySQL Instance
 
@@ -587,15 +630,19 @@ aws cloudformation deploy \
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name RDS-MySQL \
-  --template-file "cloudformation/2. Database Setup/MySQL/1. RDS MySQL Instance.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### RDS Oracle Standard Edition Instance
 
@@ -632,15 +679,19 @@ aws cloudformation deploy \
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name RDS-Oracle-SE \
-  --template-file "cloudformation/2. Database Setup/Oracle DB/1. RDS Oracle SE.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 #### RDS PostgreSQL Instance
 
@@ -677,15 +728,19 @@ aws cloudformation deploy \
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name RDS-PostgreSQL \
-  --template-file "cloudformation/2. Database Setup/PostgreSQL/1. RDS PostgreSQL Instance.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 ---
 
@@ -735,15 +790,19 @@ aws cloudformation deploy \
 - `SecurityGroup-AppTierSGId`
 - `SecurityGroup-ELBSGId`
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name API \
-  --template-file "cloudformation/3. API/1. NLB, Target Group, API EC2.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 ---
 
@@ -776,15 +835,19 @@ aws cloudformation deploy \
 | DeploymentGroupName | apiservice-deployment-group-name | Name of the CodeDeploy Deployment Group |
 | ArtifactBucketName | apiservice-artifact-bucket-name | S3 bucket used for storing pipeline artifacts |
 
-**Deploy**
+**Deploy (using the AWS Console)**
 
-```bash
-aws cloudformation deploy \
-  --region eu-west-1 \
-  --stack-name cicd \
-  --template-file "cloudformation/4. CICD Pipeline/1. CICD Pipeline.yaml" \
-  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-```
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
 
 ---
 
