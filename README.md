@@ -36,7 +36,7 @@ This repository provisions a complete environment in **AWS eu-west-1 (Ireland)**
   ```bash
   pip install cfn-lint
   ```
-- **Clone this repository** (example path): `C:\code`
+- **Clone this repository** : `https://github.com/THarmse/AWSDatabasePerformance.git`
 
 ### AWS account (Ireland)
 - **Region:** `eu-west-1`
