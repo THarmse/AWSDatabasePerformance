@@ -110,12 +110,12 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 | PrivateSubnet4CIDR | String | 10.0.8.0/24 |  | CIDR block for Private Subnet 4 (AZ b) |
 | PrivateSubnet5CIDR | String | 10.0.9.0/24 |  | CIDR block for Private Subnet 5 (AZ a) |
 | PrivateSubnet6CIDR | String | 10.0.10.0/24 |  | CIDR block for Private Subnet 6 (AZ b) |
-| PublicTier1Name | String | nat |  |  |
-| PublicTier2Name | String | elb |  |  |
-| PrivateTier1Name | String | web |  |  |
-| PrivateTier2Name | String | app |  |  |
-| PrivateTier3Name | String | data |  |  |
-| NumberOfNATGateways | Number | 1 | 0, 1, 2 | Number of NAT Gateways to create |
+| PublicTier1Name | String | nat |  | Name of the Public Tier (NAT) |
+| PublicTier2Name | String | elb |  | Name of the Public Tier (ELB) |
+| PrivateTier1Name | String | web |  | Name of the Private Tier 1 (Web Tier) |
+| PrivateTier2Name | String | app |  | Name of the Private Tier 2 (App Tier) |
+| PrivateTier3Name | String | data |  | Name of the Private Tier 3 (Data Tier) |
+| NumberOfNATGateways | Number | 2 | 0, 1, 2 | Number of NAT Gateways to create |
 
 **Outputs & export names**
 
@@ -778,14 +778,14 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 | NamePrefix | String | API |  | Prefix for naming resources |
 | NLBScheme | String | internet-facing | internet-facing, internal | NLB Scheme (internet-facing or internal) |
 | HostedZoneDomainName | String | liverpool.com |  | Base domain for the private hosted zone |
-| EC2InstanceType | String | m6i.large | t3.medium, t3.large, t3.xlarge, t3.2xlarge, m6i.large, m6i.xlarge, m6i.2xlarge, m6i.4xlarge | EC2 Instance type |
+| EC2InstanceType | String | m6i.xlarge | t3.medium, t3.large, t3.xlarge, t3.2xlarge, m6i.large, m6i.xlarge, m6i.2xlarge, m6i.4xlarge | EC2 Instance type |
 | EC2AmiId | AWS::EC2::Image::Id | ami-0fab1b527ffa9b942 |  | AMI ID for EC2 instances |
 | TargetGroupPort | Number | 80 |  | Port for Target Group registration |
 | HealthCheckPath | String | / |  | Retained for compatibility but unused in NLB TCP health checks |
 | EC2VolumeSize | Number | 40 |  | EC2 root EBS volume size (GB) |
-| MinSize | Number | 1 |  | Minimum number of EC2 instances in Auto Scaling Group |
-| MaxSize | Number | 1 |  | Maximum number of EC2 instances in Auto Scaling Group |
-| DesiredCapacity | Number | 1 |  | Desired number of EC2 instances in Auto Scaling Group |
+| MinSize | Number | 10 |  | Minimum number of EC2 instances in Auto Scaling Group |
+| MaxSize | Number | 10 |  | Maximum number of EC2 instances in Auto Scaling Group |
+| DesiredCapacity | Number | 10 |  | Desired number of EC2 instances in Auto Scaling Group |
 | ScaleCpuThreshold | Number | 80 |  | Target average CPU utilization (%) to trigger scale-out/in |
 
 **Outputs & export names**
@@ -819,7 +819,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - **Template:** `cloudformation/4. CICD Pipeline/1. CICD Pipeline.yaml`
 - **Recommended stack name:** `cicd`
 - **Summary:** Builds and deploys API to EC2 via CodeDeploy using tag-based targeting.
-
+- **Pre-Requisite:** Navigate to CodePipeline (Ireland) and create a connection to the GitHub Code Repository. Keep the ARN ready for deployment
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -838,10 +838,10 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 | Parameter | Type | Default | Allowed Values | Description |
 | --- | --- | --- | --- | --- |
 | AppName | String | apiservice |  | Name of the application (used for naming resources, must be lowercase) |
-| GitHubOwner | String | THarmse |  | GitHub user or organization owning the repository (public) |
+| GitHubOwner | String | {PASTE / INSERT GITHUB OWNER}} |  | GitHub user or organization owning the repository (public) |
 | GitHubRepo | String | AWSDatabasePerformance |  | GitHub repository name (public) |
 | GitHubBranch | String | main |  | Branch to watch for changes |
-| GitHubConnectionArn | String | arn:aws:codeconnections:eu-west-1:057088884102:connection/9d302141-dbc8-4488-bacc-3d49a734a84a |  | ARN of the AWS CodeStar Connection to GitHub (must be in AVAILABLE state) |
+| GitHubConnectionArn | String | | {PASTE/ INSERT ARN HERE} | ARN of the AWS CodeStar Connection to GitHub (must be in AVAILABLE state) |
 | EC2TagKey | String | CodeDeployRole |  | EC2 instance tag key to target |
 | EC2TagValue | String | AppServer |  | EC2 instance tag value to target |
 
