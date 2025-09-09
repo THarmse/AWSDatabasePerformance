@@ -74,7 +74,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 
 ### 1. Networking & Security
 
-#### Networking (VPC, Subnets, Route Tables, NAT, Flow Logs)
+#### ðŸ”’ Networking (VPC, Subnets, Route Tables, NAT, Flow Logs)
 
 - **Template:** `cloudformation/1. Networking and Security Groups/1. Networking.yaml`
 - **Recommended stack name:** `Networking`
