@@ -80,6 +80,20 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - **Recommended stack name:** `Networking`
 - **Summary:** Creates foundational VPC and subnets across tiers with route tables, NAT gateways, and VPC Flow Logs.
 
+**Deploy (using the AWS Console)**
+
+1. Sign in to the **AWS Management Console**.
+2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
+3. Click **Create stack** and select **With new resources (standard)**.
+4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
+5. Under **Specify template**, select **Upload a template file**.
+6. Click **Choose file**.
+7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
+8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
+9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
+10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
+
+
 **Parameters**
 
 | Parameter | Type | Default | Allowed Values | Description |
@@ -128,6 +142,13 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 | PublicRouteTable2Id | ${AWS::StackName}-PublicRouteTable2Id | The ID of Public Route Table 2 (Public Tier) |
 | VPCFlowLogsBucket | ${AWS::StackName}-VPCFlowLogsBucket | The S3 Bucket Name for storing VPC Flow Logs |
 
+
+#### VPC Endpoints (S3 & DynamoDB)
+
+- **Template:** `cloudformation/1. Networking and Security Groups/2. VPC Endpoints.yaml`
+- **Recommended stack name:** `VPC-Endpoints`
+- **Summary:** Creates Gateway VPC Endpoints for S3 and DynamoDB and associates them to private route tables.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -141,12 +162,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
 
-
-#### VPC Endpoints (S3 & DynamoDB)
-
-- **Template:** `cloudformation/1. Networking and Security Groups/2. VPC Endpoints.yaml`
-- **Recommended stack name:** `VPC-Endpoints`
-- **Summary:** Creates Gateway VPC Endpoints for S3 and DynamoDB and associates them to private route tables.
 
 **Parameters**
 
@@ -171,6 +186,13 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - `Networking-PrivateRouteTable6Id`
 - `Networking-VPCId`
 
+
+#### Database Subnet Group
+
+- **Template:** `cloudformation/1. Networking and Security Groups/3. Database Subnet Group.yaml`
+- **Recommended stack name:** `DB-Subnet-Group`
+- **Summary:** Creates the RDS Subnet Group from DB-tier subnets (private).
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -183,13 +205,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
-
-#### Database Subnet Group
-
-- **Template:** `cloudformation/1. Networking and Security Groups/3. Database Subnet Group.yaml`
-- **Recommended stack name:** `DB-Subnet-Group`
-- **Summary:** Creates the RDS Subnet Group from DB-tier subnets (private).
 
 **Parameters**
 
@@ -208,6 +223,13 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - `!Sub "${NetworkingStackName}-PrivateSubnet5Id"`
 - `!Sub "${NetworkingStackName}-PrivateSubnet6Id"`
 
+
+#### Private Hosted Zone (Route 53)
+
+- **Template:** `cloudformation/1. Networking and Security Groups/4. Private Hosted Zone.yaml`
+- **Recommended stack name:** `Private-Hosted-Zone`
+- **Summary:** Creates a Route 53 Private Hosted Zone associated to the VPC.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -220,13 +242,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
-
-#### Private Hosted Zone (Route 53)
-
-- **Template:** `cloudformation/1. Networking and Security Groups/4. Private Hosted Zone.yaml`
-- **Recommended stack name:** `Private-Hosted-Zone`
-- **Summary:** Creates a Route 53 Private Hosted Zone associated to the VPC.
 
 **Parameters**
 
@@ -244,6 +259,13 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 
 - `Networking-VPCId`
 
+
+#### Security Groups and Ports
+
+- **Template:** `cloudformation/1. Networking and Security Groups/5. Security Groups and Ports.yaml`
+- **Recommended stack name:** `SecurityGroup`
+- **Summary:** Defines security groups for Bastion, ELB/NLB, Web, App, and RDS tiers.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -256,13 +278,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
-
-#### Security Groups and Ports
-
-- **Template:** `cloudformation/1. Networking and Security Groups/5. Security Groups and Ports.yaml`
-- **Recommended stack name:** `SecurityGroup`
-- **Summary:** Defines security groups for Bastion, ELB/NLB, Web, App, and RDS tiers.
 
 **Parameters**
 
@@ -295,6 +310,17 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 
 - `Networking-VPCId`
 
+
+---
+
+### 2. Database Setup
+
+#### RDS Aurora MySQL Cluster
+
+- **Template:** `cloudformation/2. Database Setup/Aurora MySQL/1. RDS Aurora MySQL Cluster.yaml`
+- **Recommended stack name:** `RDS-Aurora-MySQL`
+- **Summary:** Creates Aurora MySQL cluster and instance with private DNS.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -307,16 +333,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
----
-
-### 2. Database Setup
-
-#### RDS Aurora MySQL Cluster
-
-- **Template:** `cloudformation/2. Database Setup/Aurora MySQL/1. RDS Aurora MySQL Cluster.yaml`
-- **Recommended stack name:** `RDS-Aurora-MySQL`
-- **Summary:** Creates Aurora MySQL cluster and instance with private DNS.
 
 **Parameters**
 
@@ -348,6 +364,13 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
+
+#### RDS Aurora PostgreSQL Cluster
+
+- **Template:** `cloudformation/2. Database Setup/Aurora PostgreSQL/1. RDS Aurora PostgreSQL Cluster.yaml`
+- **Recommended stack name:** `RDS-Aurora-PostgreSQL`
+- **Summary:** Creates Aurora PostgreSQL cluster and instance with private DNS.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -360,13 +383,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
-
-#### RDS Aurora PostgreSQL Cluster
-
-- **Template:** `cloudformation/2. Database Setup/Aurora PostgreSQL/1. RDS Aurora PostgreSQL Cluster.yaml`
-- **Recommended stack name:** `RDS-Aurora-PostgreSQL`
-- **Summary:** Creates Aurora PostgreSQL cluster and instance with private DNS.
 
 **Parameters**
 
@@ -398,6 +414,13 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
+
+#### DynamoDB Table
+
+- **Template:** `cloudformation/2. Database Setup/DynamoDB/1. DynamoDB Table.yaml`
+- **Recommended stack name:** `DynamoDB-Table`
+- **Summary:** Creates a DynamoDB table for transactions.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -410,14 +433,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
-
-#### DynamoDB Table
-
-- **Template:** `cloudformation/2. Database Setup/DynamoDB/1. DynamoDB Table.yaml`
-- **Recommended stack name:** `DynamoDB-Table`
-- **Summary:** Creates a DynamoDB table for transactions.
-
+ 
 **Parameters**
 
 | Parameter | Type | Default | Allowed Values | Description |
@@ -433,6 +449,13 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 | DynamoDBTableName |  | Name of the DynamoDB table |
 | ParameterStoreCredentialPath |  | SSM Parameter Store path for JSON credentials |
 
+
+#### RDS IBM Db2 Standard Edition
+
+- **Template:** `cloudformation/2. Database Setup/IBM DB2/1. RDS IBM DB2 SE.yaml`
+- **Recommended stack name:** `RDS-IBM-DB2-SE`
+- **Summary:** Creates IBM Db2 (SE) RDS instance with private DNS. Requires AWS Marketplace subscription.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -446,13 +469,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
 
-
-#### RDS IBM Db2 Standard Edition
-
-- **Template:** `cloudformation/2. Database Setup/IBM DB2/1. RDS IBM DB2 SE.yaml`
-- **Recommended stack name:** `RDS-IBM-DB2-SE`
-- **Summary:** Creates IBM Db2 (SE) RDS instance with private DNS. Requires AWS Marketplace subscription.
-
+ 
 **Parameters**
 
 | Parameter | Type | Default | Allowed Values | Description |
@@ -482,6 +499,12 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
+#### RDS MariaDB Instance
+
+- **Template:** `cloudformation/2. Database Setup/Maria DB/1. RDS MariaDB Instance.yaml`
+- **Recommended stack name:** `RDS-MariaDB`
+- **Summary:** Creates Amazon RDS for MariaDB with private DNS.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -495,12 +518,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
 
-
-#### RDS MariaDB Instance
-
-- **Template:** `cloudformation/2. Database Setup/Maria DB/1. RDS MariaDB Instance.yaml`
-- **Recommended stack name:** `RDS-MariaDB`
-- **Summary:** Creates Amazon RDS for MariaDB with private DNS.
 
 **Parameters**
 
@@ -531,6 +548,13 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
+
+#### RDS Microsoft SQL Server SE Instance
+
+- **Template:** `cloudformation/2. Database Setup/MS SQL Server/1. RDS MS SQL Server SE.yaml`
+- **Recommended stack name:** `RDS-MSSQL-SE`
+- **Summary:** Creates Amazon RDS for SQL Server (Standard Edition) with private DNS.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -543,14 +567,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
-
-#### RDS Microsoft SQL Server SE Instance
-
-- **Template:** `cloudformation/2. Database Setup/MS SQL Server/1. RDS MS SQL Server SE.yaml`
-- **Recommended stack name:** `RDS-MSSQL-SE`
-- **Summary:** Creates Amazon RDS for SQL Server (Standard Edition) with private DNS.
-
+ 
 **Parameters**
 
 | Parameter | Type | Default | Allowed Values | Description |
@@ -581,6 +598,13 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
+
+#### RDS MySQL Instance
+
+- **Template:** `cloudformation/2. Database Setup/MySQL/1. RDS MySQL Instance.yaml`
+- **Recommended stack name:** `RDS-MySQL`
+- **Summary:** Creates Amazon RDS for MySQL with private DNS.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -593,13 +617,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
-
-#### RDS MySQL Instance
-
-- **Template:** `cloudformation/2. Database Setup/MySQL/1. RDS MySQL Instance.yaml`
-- **Recommended stack name:** `RDS-MySQL`
-- **Summary:** Creates Amazon RDS for MySQL with private DNS.
 
 **Parameters**
 
@@ -630,6 +647,14 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
+
+
+#### RDS Oracle Standard Edition Instance
+
+- **Template:** `cloudformation/2. Database Setup/Oracle DB/1. RDS Oracle SE.yaml`
+- **Recommended stack name:** `RDS-Oracle-SE`
+- **Summary:** Creates Amazon RDS for Oracle (SE) with private DNS.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -642,13 +667,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
-
-#### RDS Oracle Standard Edition Instance
-
-- **Template:** `cloudformation/2. Database Setup/Oracle DB/1. RDS Oracle SE.yaml`
-- **Recommended stack name:** `RDS-Oracle-SE`
-- **Summary:** Creates Amazon RDS for Oracle (SE) with private DNS.
 
 **Parameters**
 
@@ -679,6 +697,13 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
+
+#### RDS PostgreSQL Instance
+
+- **Template:** `cloudformation/2. Database Setup/PostgreSQL/1. RDS PostgreSQL Instance.yaml`
+- **Recommended stack name:** `RDS-PostgreSQL`
+- **Summary:** Creates Amazon RDS for PostgreSQL with private DNS.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -691,13 +716,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
-
-#### RDS PostgreSQL Instance
-
-- **Template:** `cloudformation/2. Database Setup/PostgreSQL/1. RDS PostgreSQL Instance.yaml`
-- **Recommended stack name:** `RDS-PostgreSQL`
-- **Summary:** Creates Amazon RDS for PostgreSQL with private DNS.
 
 **Parameters**
 
@@ -728,6 +746,18 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
+
+
+---
+
+### 3. API Layer
+
+#### NLB, Target Group, API EC2 (ASG)
+
+- **Template:** `cloudformation/3. API/1. NLB, Target Group, API EC2.yaml`
+- **Recommended stack name:** `API`
+- **Summary:** Creates NLB, Target Group, Launch Template + Auto Scaling Group, and private DNS record.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -740,17 +770,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
-
----
-
-### 3. API Layer
-
-#### NLB, Target Group, API EC2 (ASG)
-
-- **Template:** `cloudformation/3. API/1. NLB, Target Group, API EC2.yaml`
-- **Recommended stack name:** `API`
-- **Summary:** Creates NLB, Target Group, Launch Template + Auto Scaling Group, and private DNS record.
 
 **Parameters**
 
@@ -790,6 +809,17 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 - `SecurityGroup-AppTierSGId`
 - `SecurityGroup-ELBSGId`
 
+
+---
+
+### 4. CI/CD Pipeline
+
+#### CI/CD Pipeline (CodePipeline, CodeBuild, CodeDeploy)
+
+- **Template:** `cloudformation/4. CICD Pipeline/1. CICD Pipeline.yaml`
+- **Recommended stack name:** `cicd`
+- **Summary:** Builds and deploys API to EC2 via CodeDeploy using tag-based targeting.
+
 **Deploy (using the AWS Console)**
 
 1. Sign in to the **AWS Management Console**.
@@ -802,17 +832,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
 9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
 10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
-
-
----
-
-### 4. CI/CD Pipeline
-
-#### CI/CD Pipeline (CodePipeline, CodeBuild, CodeDeploy)
-
-- **Template:** `cloudformation/4. CICD Pipeline/1. CICD Pipeline.yaml`
-- **Recommended stack name:** `cicd`
-- **Summary:** Builds and deploys API to EC2 via CodeDeploy using tag-based targeting.
 
 **Parameters**
 
@@ -834,19 +853,6 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 | CodeDeployApplicationName | apiservice-codedeploy-application-name | Name of the CodeDeploy Application |
 | DeploymentGroupName | apiservice-deployment-group-name | Name of the CodeDeploy Deployment Group |
 | ArtifactBucketName | apiservice-artifact-bucket-name | S3 bucket used for storing pipeline artifacts |
-
-**Deploy (using the AWS Console)**
-
-1. Sign in to the **AWS Management Console**.
-2. Open **CloudFormation (Ireland)**: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
-3. Click **Create stack** and select **With new resources (standard)**.
-4. Under **Prerequisite - Prepare template**, make sure **Template is ready** (choose an existing template) is selected.
-5. Under **Specify template**, select **Upload a template file**.
-6. Click **Choose file**.
-7. Browse to and select the CloudFormation template **(.yaml)** from this repository.
-8. Click **Next**, then enter a **Stack name**. If this README lists a **Recommended stack name** for the template, use it **exactly** as shown.
-9. Ensure all required **Parameters** are filled out (defaults are provided where applicable).
-10. Click **Next**, review, acknowledge any required capabilities (e.g., **IAM**), and choose **Create stack** to deploy.
 
 
 ---
@@ -895,7 +901,7 @@ sudo systemctl enable codedeploy-agent
 sudo systemctl start codedeploy-agent
 ```
 
-### Manually run the API service (sanity check)
+### Manually run the API service (sanity check via SSH to EC2)
 ```bash
 source /home/ec2-user/app/venv/bin/activate
 cd /home/ec2-user/app
@@ -910,7 +916,6 @@ sudo kill <PID>
 
 ## Notes & Quotas
 
-- **DynamoDB numeric types:** DynamoDB does not support `float`; use **`Decimal`** for `unit_price` and `total_amount`.
 - **Deployments & code updates:** EC2 instances are managed by an **Auto Scaling Group** (selfâ€‘healing). **Code updates** are delivered by the **CI/CD pipeline** (CodeDeploy) and are **not** fetched automatically unless a deployment is triggered.
 - **Quotas:** New accounts often have **16 vCPU** regional limits; request an increase to **64 vCPU** for planned testing.
 - **Crossâ€‘stack dependencies:**
