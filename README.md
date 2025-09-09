@@ -74,7 +74,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 
 ### 1. Networking & Security
 
-#### 🔒 Networking (VPC, Subnets, Route Tables, NAT, Flow Logs)
+#### 🧩 Networking (VPC, Subnets, Route Tables, NAT, Flow Logs)
 
 - **Template:** `cloudformation/1. Networking and Security Groups/1. Networking.yaml`
 - **Recommended stack name:** `Networking`
@@ -143,7 +143,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 | VPCFlowLogsBucket | ${AWS::StackName}-VPCFlowLogsBucket | The S3 Bucket Name for storing VPC Flow Logs |
 
 
-#### VPC Endpoints (S3 & DynamoDB)
+#### 🧩 VPC Endpoints (S3 & DynamoDB)
 
 - **Template:** `cloudformation/1. Networking and Security Groups/2. VPC Endpoints.yaml`
 - **Recommended stack name:** `VPC-Endpoints`
@@ -187,7 +187,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 - `Networking-VPCId`
 
 
-#### Database Subnet Group
+#### 🧩 Database Subnet Group
 
 - **Template:** `cloudformation/1. Networking and Security Groups/3. Database Subnet Group.yaml`
 - **Recommended stack name:** `DB-Subnet-Group`
@@ -224,7 +224,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 - `!Sub "${NetworkingStackName}-PrivateSubnet6Id"`
 
 
-#### Private Hosted Zone (Route 53)
+#### 🧩 Private Hosted Zone (Route 53)
 
 - **Template:** `cloudformation/1. Networking and Security Groups/4. Private Hosted Zone.yaml`
 - **Recommended stack name:** `Private-Hosted-Zone`
@@ -260,7 +260,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 - `Networking-VPCId`
 
 
-#### Security Groups and Ports
+#### 🧩 Security Groups and Ports
 
 - **Template:** `cloudformation/1. Networking and Security Groups/5. Security Groups and Ports.yaml`
 - **Recommended stack name:** `SecurityGroup`
@@ -315,7 +315,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 
 ### 2. Database Setup
 
-#### RDS Aurora MySQL Cluster
+#### 🛢️ RDS Aurora MySQL Cluster
 
 - **Template:** `cloudformation/2. Database Setup/Aurora MySQL/1. RDS Aurora MySQL Cluster.yaml`
 - **Recommended stack name:** `RDS-Aurora-MySQL`
@@ -365,7 +365,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 - `SecurityGroup-RDSSGId`
 
 
-#### RDS Aurora PostgreSQL Cluster
+#### 🛢️ RDS Aurora PostgreSQL Cluster
 
 - **Template:** `cloudformation/2. Database Setup/Aurora PostgreSQL/1. RDS Aurora PostgreSQL Cluster.yaml`
 - **Recommended stack name:** `RDS-Aurora-PostgreSQL`
@@ -415,7 +415,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 - `SecurityGroup-RDSSGId`
 
 
-#### DynamoDB Table
+#### 🛢️ DynamoDB Table
 
 - **Template:** `cloudformation/2. Database Setup/DynamoDB/1. DynamoDB Table.yaml`
 - **Recommended stack name:** `DynamoDB-Table`
@@ -450,7 +450,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 | ParameterStoreCredentialPath |  | SSM Parameter Store path for JSON credentials |
 
 
-#### RDS IBM Db2 Standard Edition
+#### 🛢️ RDS IBM Db2 Standard Edition
 
 - **Template:** `cloudformation/2. Database Setup/IBM DB2/1. RDS IBM DB2 SE.yaml`
 - **Recommended stack name:** `RDS-IBM-DB2-SE`
@@ -499,7 +499,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 - `PrivateHostedZoneId`
 - `SecurityGroup-RDSSGId`
 
-#### RDS MariaDB Instance
+#### 🛢️ RDS MariaDB Instance
 
 - **Template:** `cloudformation/2. Database Setup/Maria DB/1. RDS MariaDB Instance.yaml`
 - **Recommended stack name:** `RDS-MariaDB`
@@ -549,7 +549,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 - `SecurityGroup-RDSSGId`
 
 
-#### RDS Microsoft SQL Server SE Instance
+#### 🛢️ RDS Microsoft SQL Server SE Instance
 
 - **Template:** `cloudformation/2. Database Setup/MS SQL Server/1. RDS MS SQL Server SE.yaml`
 - **Recommended stack name:** `RDS-MSSQL-SE`
@@ -599,7 +599,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 - `SecurityGroup-RDSSGId`
 
 
-#### RDS MySQL Instance
+#### 🛢️ RDS MySQL Instance
 
 - **Template:** `cloudformation/2. Database Setup/MySQL/1. RDS MySQL Instance.yaml`
 - **Recommended stack name:** `RDS-MySQL`
@@ -649,7 +649,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 
 
 
-#### RDS Oracle Standard Edition Instance
+#### 🛢️ RDS Oracle Standard Edition Instance
 
 - **Template:** `cloudformation/2. Database Setup/Oracle DB/1. RDS Oracle SE.yaml`
 - **Recommended stack name:** `RDS-Oracle-SE`
@@ -698,7 +698,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 - `SecurityGroup-RDSSGId`
 
 
-#### RDS PostgreSQL Instance
+#### 🛢️ RDS PostgreSQL Instance
 
 - **Template:** `cloudformation/2. Database Setup/PostgreSQL/1. RDS PostgreSQL Instance.yaml`
 - **Recommended stack name:** `RDS-PostgreSQL`
@@ -752,7 +752,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 
 ### 3. API Layer
 
-#### NLB, Target Group, API EC2 (ASG)
+#### 🧩 NLB, Target Group, API EC2 (ASG)
 
 - **Template:** `cloudformation/3. API/1. NLB, Target Group, API EC2.yaml`
 - **Recommended stack name:** `API`
@@ -814,7 +814,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 
 ### 4. CI/CD Pipeline
 
-#### CI/CD Pipeline (CodePipeline, CodeBuild, CodeDeploy)
+#### 🧩 CI/CD Pipeline (CodePipeline, CodeBuild, CodeDeploy)
 
 - **Template:** `cloudformation/4. CICD Pipeline/1. CICD Pipeline.yaml`
 - **Recommended stack name:** `cicd`
@@ -857,7 +857,7 @@ Deploy **exactly** in this order. Use the **recommended stack names** so cross�
 
 ---
 
-## Post-Deployment: Apache JMeter
+## 🚀 Post-Deployment: Apache JMeter
 
 You can run the performance tests locally (Windows) or from a dedicated EC2 host.
 
@@ -889,7 +889,7 @@ You can run the performance tests locally (Windows) or from a dedicated EC2 host
 
 ## Operations & Troubleshooting
 
-### CodeDeploy agent (if the API EC2 is not getting new builds)
+### ⚙️CodeDeploy agent (if the API EC2 is not getting new builds)
 ```bash
 sudo yum update -y
 sudo yum install -y ruby wget
@@ -901,7 +901,7 @@ sudo systemctl enable codedeploy-agent
 sudo systemctl start codedeploy-agent
 ```
 
-### Manually run the API service (sanity check via SSH to EC2)
+### ⚙️Manually run the API service (sanity check via SSH to EC2)
 ```bash
 source /home/ec2-user/app/venv/bin/activate
 cd /home/ec2-user/app
@@ -914,7 +914,7 @@ sudo netstat -tulnp | grep 8000
 sudo kill <PID>
 ```
 
-## Notes & Quotas
+## 🗄️ Notes & Quotas
 
 - **Deployments & code updates:** EC2 instances are managed by an **Auto Scaling Group** (self‑healing). **Code updates** are delivered by the **CI/CD pipeline** (CodeDeploy) and are **not** fetched automatically unless a deployment is triggered.
 - **Quotas:** New accounts often have **16 vCPU** regional limits; request an increase to **64 vCPU** for planned testing.
