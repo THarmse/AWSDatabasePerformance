@@ -783,9 +783,9 @@ Deploy **exactly** in this order. Use the **recommended stack names** so crossâ€
 | TargetGroupPort | Number | 80 |  | Port for Target Group registration |
 | HealthCheckPath | String | / |  | Retained for compatibility but unused in NLB TCP health checks |
 | EC2VolumeSize | Number | 40 |  | EC2 root EBS volume size (GB) |
-| MinSize | Number | 10 |  | Minimum number of EC2 instances in Auto Scaling Group |
-| MaxSize | Number | 10 |  | Maximum number of EC2 instances in Auto Scaling Group |
-| DesiredCapacity | Number | 10 |  | Desired number of EC2 instances in Auto Scaling Group |
+| MinSize | Number | 20 |  | Minimum number of EC2 instances in Auto Scaling Group |
+| MaxSize | Number | 20 |  | Maximum number of EC2 instances in Auto Scaling Group |
+| DesiredCapacity | Number | 20 |  | Desired number of EC2 instances in Auto Scaling Group |
 | ScaleCpuThreshold | Number | 80 |  | Target average CPU utilization (%) to trigger scale-out/in |
 
 **Outputs & export names**
