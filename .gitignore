@@ -1,1 +1,4 @@
 .vs/
+jmeter.log
+performance_tests/jmeter/bin/jmeter.log
+*.log

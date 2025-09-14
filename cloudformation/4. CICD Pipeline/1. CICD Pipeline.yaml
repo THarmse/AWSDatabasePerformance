@@ -14,7 +14,7 @@ Parameters:
 
   GitHubOwner:
     Type: String
-    Default: THarmse
+    Default: PASTE GIT HUB OWNER NAME HERE
     Description: GitHub user or organization owning the repository (public)
 
   GitHubRepo:
@@ -29,7 +29,7 @@ Parameters:
 
   GitHubConnectionArn:
     Type: String
-    Default: arn:aws:codeconnections:eu-west-1:057088884102:connection/9d302141-dbc8-4488-bacc-3d49a734a84a
+    Default: PASTE ARN VALUE HERE
     Description: ARN of the AWS CodeStar Connection to GitHub (must be in AVAILABLE state)
 
   EC2TagKey:

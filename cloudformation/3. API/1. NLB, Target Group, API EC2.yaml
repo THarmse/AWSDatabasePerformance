@@ -27,7 +27,7 @@ Parameters:
 
   EC2InstanceType:
     Type: String
-    Default: m6i.large
+    Default: m6i.xlarge
     AllowedValues:
       - t3.medium
       - t3.large
@@ -61,17 +61,17 @@ Parameters:
 
   MinSize:
     Type: Number
-    Default: 1
+    Default: 10
     Description: Minimum number of EC2 instances in Auto Scaling Group
 
   MaxSize:
     Type: Number
-    Default: 1
+    Default: 10
     Description: Maximum number of EC2 instances in Auto Scaling Group
 
   DesiredCapacity:
     Type: Number
-    Default: 1
+    Default: 10
     Description: Desired number of EC2 instances in Auto Scaling Group
 
   ScaleCpuThreshold:
